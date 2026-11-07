@@ -1,0 +1,32 @@
+{
+  "id": "./scorer.html",
+  "name": "Score Keeper \u00b7 Sportfest 2026",
+  "short_name": "Score Keeper",
+  "description": "Live scoring for Sportfest 2026 games.",
+  "start_url": "./scorer.html",
+  "scope": "./scorer",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#140e09",
+  "theme_color": "#140e09",
+  "icons": [
+    {
+      "src": "assets/app/scanner-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app/scanner-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app/scanner-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

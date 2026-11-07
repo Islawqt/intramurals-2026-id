@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="app-version" content="20261107060657">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#140e09">
+  <meta name="description" content="Live scores, standings, brackets and schedule for STI Valencia Sportfest 2026.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="STI College Valencia SSC">
+  <meta property="og:locale" content="en_PH">
+  <meta property="og:title" content="Sportfest 2026 · Live Scoreboard">
+  <meta property="og:description" content="Live scores, standings, brackets and schedule for STI Valencia Sportfest 2026.">
+  <meta property="og:url" content="https://islawqt.github.io/intramurals-2026-id/scoreboard.html">
+  <meta property="og:image" content="https://islawqt.github.io/intramurals-2026-id/assets/og/og-pass.jpg?v=4">
+  <meta property="og:image:secure_url" content="https://islawqt.github.io/intramurals-2026-id/assets/og/og-pass.jpg?v=4">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Sportfest 2026 live scoreboard">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sportfest 2026 · Live Scoreboard">
+  <meta name="twitter:description" content="Live scores, standings, brackets and schedule for STI Valencia Sportfest 2026.">
+  <meta name="twitter:image" content="https://islawqt.github.io/intramurals-2026-id/assets/og/og-pass.jpg?v=4">
+  <title>Sportfest 2026 Scoreboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/og/crest-192.png">
+  <link rel="apple-touch-icon" href="assets/og/crest-192.png">
+  <link rel="stylesheet" href="style.css?v=20261107060657">
+  <link rel="stylesheet" href="sports.css?v=20261107060657">
+  <script src="update.js?v=20261107060657"></script>
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+  <main class="sbw">
+    <header class="brand">
+      <p class="eyebrow">STI College Valencia · SSC</p>
+      <h1>Sportfest 2026</h1>
+      <img class="event-crest" src="assets/og/crest-web.webp" width="352" height="440" alt="Sportfest 2026 crest">
+      <p class="sub">Official Scoreboard</p>
+    </header>
+    <p class="sb-live" role="status"><span id="dot" class="sb-dot off" aria-hidden="true"></span><span id="liveTxt">Loading…</span></p>
+    <nav class="sb-tabs" role="tablist">
+      <button type="button" data-tab="ov" class="on">Overview</button>
+      <button type="button" data-tab="br">Brackets</button>
+      <button type="button" data-tab="sc">Schedule</button>
+    </nav>
+
+    <section id="ov" class="sb-pane">
+      <div class="sb-grid">
+        <div>
+          <h2 class="sb-h">Top 3</h2>
+          <div id="podium" class="sb-podium"></div>
+          <p id="podNote" class="sb-empty" hidden>Points come in when a sport finishes.</p>
+          <h2 class="sb-h" style="margin-top:22px" id="liveHead">Live now</h2>
+          <div id="liveList" class="sb-liveList"></div>
+        </div>
+        <div>
+          <h2 class="sb-h">Standings</h2>
+          <section class="panel" style="padding:14px 12px">
+            <table class="sb-table"><thead><tr><th>#</th><th>Team</th><th>Played</th><th>Won</th><th>Lost</th><th>Points</th></tr></thead><tbody id="rows"></tbody></table>
+            <p class="adm-hint" id="ptsNote" style="text-align:center;margin-bottom:0"></p>
+          </section>
+          <div class="sb-stats" id="stats"></div>
+          <section class="panel" style="padding:14px 12px">
+            <p class="adm-label" style="margin-top:0">Wins by team</p>
+            <div class="sb-bars" id="bars"></div>
+            <p class="adm-label">Latest results</p>
+            <div id="results"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="br" class="sb-pane" hidden>
+      <div class="sb-sports" id="brSports"></div>
+      <div class="br-box">
+        <div class="br-head"><span id="brTitle"></span><small id="brSub"></small>
+          <div class="br-zoom"><button type="button" id="zOut" aria-label="Zoom out">−</button><button type="button" id="zFit">Fit</button><button type="button" id="zIn" aria-label="Zoom in">+</button></div></div>
+        <div class="br-view" id="brView"><div class="br-size" id="brSize"><div class="br-canvas" id="brCanvas"></div></div></div>
+        <p class="br-legend" id="brLegend"></p>
+      </div>
+    </section>
+
+    <section id="sc" class="sb-pane" hidden>
+      <div class="sb-sports" id="scSports"></div>
+      <div id="sched" style="max-width:720px;margin:0 auto"></div>
+    </section>
+
+    <footer class="foot"><a class="link-btn foot-link" href="./">Get your event pass</a><span>© 2026 STI College Valencia SSC · All rights reserved</span></footer>
+  </main>
+  <script src="config.js?v=20261107060657"></script>
+  <script src="scoreboard.js?v=20261107060657"></script>
+</body>
+</html>

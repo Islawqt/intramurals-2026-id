@@ -1,0 +1,149 @@
+/* ===== Sportfest scoreboard, brackets and Score Keeper (loaded after style.css) ===== */
+.sbw{max-width:1200px;margin:0 auto;padding:18px 14px 40px;position:relative;z-index:1}
+.sbw .brand{text-align:center;margin-bottom:4px}
+.sbw .event-crest{width:82px}
+.sb-live{display:flex;justify-content:center;align-items:center;gap:8px;margin:2px 0 12px;font:italic 15px 'IM Fell English',serif;color:rgba(243,230,198,.8)}
+.sb-dot{width:9px;height:9px;border-radius:50%;background:#e23b3b;box-shadow:0 0 8px #e23b3b;animation:livePulse 1.4s infinite}
+.sb-dot.off{background:#888;box-shadow:none;animation:none}
+.sb-tabs{display:flex;justify-content:center;gap:6px;margin:6px 0 14px}
+.sb-tabs button{padding:8px 18px;border:2px solid #c9a24a;background:transparent;color:#f1d27a;font:700 14px Cinzel,serif;border-radius:999px;cursor:pointer}
+.sb-tabs button.on{background:#c9a24a;color:#2a1a0b}
+.sb-h{margin:0 0 10px;text-align:center;color:#f1d27a;font:700 19px Cinzel,serif;letter-spacing:.06em}
+.sb-grid{display:grid;gap:18px}
+@media (min-width:900px),(orientation:landscape) and (min-width:600px){.sb-grid{grid-template-columns:minmax(300px,.95fr) 1.25fr;align-items:start}}
+.sb-empty{text-align:center;font:italic 16px 'IM Fell English',serif;color:rgba(243,230,198,.7);padding:16px}
+/* top 3 */
+.sb-podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:10px}
+.sb-pod{text-align:center;color:#f3e6c6}
+.sb-pod img{height:74px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6))}
+.sb-pod.p1 img{height:98px}
+.sb-pod b{display:block;font:700 14px Cinzel,serif;margin-top:4px}
+.sb-pod .pts{font:700 26px 'Cinzel Decorative',serif;color:#f1d27a}
+.sb-pod .pts small{font:italic 14px 'IM Fell English',serif;color:#e9d6a8}
+.sb-pod .step{margin-top:6px;border-radius:8px 8px 0 0;display:grid;place-items:center;font:700 28px Cinzel,serif;color:#2a1a0b}
+.sb-pod.p1 .step{height:104px;background:linear-gradient(180deg,#f1d27a,#a57a24)}
+.sb-pod.p2 .step{height:76px;background:linear-gradient(180deg,#e6e6e6,#8d8d8d)}
+.sb-pod.p3 .step{height:56px;background:linear-gradient(180deg,#e0a56a,#80501f)}
+/* live match cards */
+.sb-liveList{display:grid;gap:10px}
+.sb-match{padding:12px;color:#2b1d10}
+.sb-mh{display:flex;justify-content:space-between;align-items:center;gap:8px;font:700 12px Cinzel,serif;letter-spacing:.04em;color:#5a4630}
+.sb-tag{display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;background:#9b2c2c;color:#fff;font:700 11px Cinzel,serif;white-space:nowrap}
+.sb-tag i{width:7px;height:7px;border-radius:50%;background:#fff;animation:livePulse 1.4s infinite}
+.sb-mr{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:8px}
+.sb-side{display:flex;align-items:center;gap:8px;font:700 14px Cinzel,serif;min-width:0}
+.sb-side.r{flex-direction:row-reverse;text-align:right}
+.sb-side img{height:40px}
+.sb-score{display:flex;align-items:center;gap:10px;font:700 34px 'Cinzel Decorative',serif}
+.sb-score i{font:italic 16px 'IM Fell English',serif;color:#8a6a40}
+.sb-score .lead{color:#2f6b3a}
+.sb-score .bump{animation:sbBump .6s ease}
+@keyframes sbBump{40%{transform:scale(1.25);color:#b7791f}}
+.sb-mf{margin-top:4px;text-align:center;font:italic 13px 'IM Fell English',serif;color:#5a4630}
+/* standings */
+.sb-table{width:100%;border-collapse:collapse;font-family:'EB Garamond',serif;color:#2b1d10}
+.sb-table th{font:700 12px Cinzel,serif;letter-spacing:.08em;padding:8px 6px;border-bottom:2px solid rgba(90,60,30,.45);text-align:center}
+.sb-table th:nth-child(2){text-align:left}
+.sb-table td{padding:9px 6px;border-bottom:1px solid rgba(90,60,30,.25);text-align:center;font-size:17px}
+.sb-table td.team{display:flex;align-items:center;gap:8px;text-align:left;font:700 15px Cinzel,serif;border-left:5px solid var(--c)}
+.sb-table td.team img{height:30px}
+.sb-rank{font:700 20px 'Cinzel Decorative',serif}
+.sb-total{font:700 20px Cinzel,serif}
+.sb-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0 12px}
+.sb-st{padding:10px 6px;border-radius:10px;text-align:center;background:rgba(255,250,235,.08);border:1px solid rgba(201,162,74,.35);color:#f3e6c6}
+.sb-st b{display:block;font:700 26px 'Cinzel Decorative',serif;color:#f1d27a}
+.sb-st span{font:italic 13px 'IM Fell English',serif}
+.sb-bars{display:grid;gap:8px}
+.sb-bar{display:grid;grid-template-columns:110px 1fr 34px;align-items:center;gap:8px;font:700 12px Cinzel,serif;color:#2b1d10}
+.sb-bar .tr{height:14px;border-radius:7px;background:rgba(90,60,30,.15);overflow:hidden}
+.sb-bar .fi{height:100%;border-radius:7px;background:var(--c);transition:width .8s ease}
+.sb-res{display:grid;grid-template-columns:1fr auto;gap:6px;padding:7px 4px;border-bottom:1px dashed rgba(90,60,30,.35);font-size:15px;color:#2b1d10}
+.sb-res b{font:700 13px Cinzel,serif}.sb-res .w{color:#2f6b3a;font-weight:600}
+.sb-res small{font:italic 13px 'IM Fell English',serif;color:#5a4630}
+/* sport chips */
+.sb-sports{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px;justify-content:center;flex-wrap:wrap}
+.sb-sports button{flex:none;padding:6px 14px;border:1px solid rgba(201,162,74,.5);border-radius:8px;background:rgba(0,0,0,.25);color:#e9d6a8;font:700 13px Cinzel,serif;cursor:pointer}
+.sb-sports button.on{background:#f3e6c6;color:#2b1d10}
+/* bracket */
+.br-box{border:1px solid rgba(201,162,74,.35);border-radius:10px;background:rgba(20,13,8,.55)}
+.br-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid rgba(201,162,74,.25);font:700 13px Cinzel,serif;letter-spacing:.12em;color:#f1d27a}
+.br-head small{font:italic 14px 'IM Fell English',serif;letter-spacing:0;color:#cbb88f}
+.br-zoom{display:flex;gap:4px}
+.br-zoom button{min-width:36px;height:32px;border:1px solid rgba(201,162,74,.6);border-radius:8px;background:rgba(0,0,0,.3);color:#f1d27a;font:700 14px Cinzel,serif;cursor:pointer}
+.br-view{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
+.br-size{position:relative}
+.br-canvas{position:absolute;left:0;top:0;transform-origin:0 0;padding:14px}
+.br-canvas svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+.br-canvas svg path{fill:none;stroke:rgba(201,162,74,.55);stroke-width:1.5}
+.br-sec{position:absolute;font:700 12px Cinzel,serif;letter-spacing:.14em;color:#c9a24a}
+.br-m{position:absolute;width:200px}
+.br-cap{font:12px 'EB Garamond',serif;color:#b9a77f;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br-cap b{color:#e9d6a8;font-weight:600}
+.br-cap .lv{color:#ff6b6b;font-weight:700}
+.br-t{display:grid;grid-template-columns:6px 26px 1fr 30px;align-items:center;height:36px;background:#2a1f16;border:1px solid rgba(201,162,74,.28);color:#d8c9a6}
+.br-t+.br-t{border-top:0}
+.br-t i{height:100%;background:var(--c)}
+.br-t img{height:20px;justify-self:center}
+.br-t span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font:700 13px Cinzel,serif}
+.br-t b{text-align:center;font:700 16px Cinzel,serif}
+.br-t.w{background:#3a2c1e;color:#fff6dd}.br-t.w b{color:#f1d27a}
+.br-t.l{opacity:.5}
+.br-t.tbd span{font:italic 14px 'IM Fell English',serif;color:#8f7d5c}
+.br-t.live b{color:#ff9b9b}
+.br-champ{position:absolute;width:200px;text-align:center;color:#f1d27a;font:italic 14px 'IM Fell English',serif}
+.br-champ img{height:64px;display:block;margin:0 auto 4px}
+.br-champ img.dim{opacity:.35}
+.br-champ b{display:block;font:700 16px Cinzel,serif}
+.br-legend{padding:8px 14px 12px;font:italic 14px 'IM Fell English',serif;color:#cbb88f}
+/* schedule */
+.sc-day{margin-bottom:14px}
+.sc-day h4{margin:0 0 6px;font:700 13px Cinzel,serif;letter-spacing:.1em;color:#c9a24a}
+.sc-row{display:grid;grid-template-columns:74px 1fr auto;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:rgba(255,250,235,.06);border:1px solid rgba(201,162,74,.25);margin-bottom:6px;color:#f3e6c6;font-size:15px}
+.sc-row .tms{font:700 13px Cinzel,serif}.sc-row small{display:block;font:italic 13px 'IM Fell English',serif;color:#cbb88f}
+.sc-st{white-space:nowrap;font:700 12px Cinzel,serif;padding:3px 9px;border-radius:999px;background:#3b3b3b}
+.sc-st.l{background:#9b2c2c}.sc-st.f{background:#2f6b3a}
+@media(max-width:560px){
+  .sb-table td{font-size:15px;padding:8px 3px}.sb-table td.team{font-size:12px}.sb-table td.team img{height:24px}.sb-table th{font-size:10px;padding:6px 2px}
+  .sb-score{font-size:28px}.sb-side{font-size:11px}.sb-side img{height:32px}.sb-stats{grid-template-columns:repeat(2,1fr)}
+  .sb-bar{grid-template-columns:84px 1fr 30px;font-size:10px}.sc-row{grid-template-columns:62px 1fr auto;font-size:14px}
+}
+@media (orientation:landscape) and (max-height:520px){
+  .sbw{padding-top:10px}.sbw .brand{display:flex;align-items:center;justify-content:center;gap:14px}
+  .sbw .brand h1{font-size:26px;margin:0}.sbw .brand .eyebrow{display:none}.sbw .event-crest{width:46px;margin:0}.sbw .brand .sub{margin:0}
+  .sb-pod img{height:50px}.sb-pod.p1 img{height:62px}.sb-pod.p1 .step{height:66px}.sb-pod.p2 .step{height:50px}.sb-pod.p3 .step{height:38px}.sb-pod .step{font-size:20px}.sb-pod .pts{font-size:20px}.sb-pod b{font-size:11px}
+}
+
+/* ===== Score Keeper app ===== */
+.sk-who{text-align:center;font:italic 15px 'IM Fell English',serif;color:#e9d6a8;margin:-6px 0 12px}
+.sk-list{display:grid;gap:10px}
+.sk-mi{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px;border:1px solid rgba(90,60,30,.35);border-radius:10px;background:rgba(255,250,235,.45)}
+.sk-mi b{font:700 15px Cinzel,serif}.sk-mi small{display:block;font:italic 14px 'IM Fell English',serif;color:#5a4630}
+.sk-mi .btn{width:auto}
+.sk-pill{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font:700 10px Cinzel,serif;color:#fff;background:#9b2c2c;vertical-align:2px}
+.sk-pill.up{background:#5a4630}.sk-pill.done{background:#2f6b3a}
+.sk-filter{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:0 0 10px}
+.sk-ev{text-align:center;font:700 14px Cinzel,serif;color:#5a4630}
+.sk-series{text-align:center;font:italic 15px 'IM Fell English',serif;color:#5a4630;margin:2px 0 0}
+.sk-per{display:flex;justify-content:center;gap:6px;margin:8px 0 12px;flex-wrap:wrap}
+.sk-per button{min-width:44px;padding:6px 10px;border:2px solid #2b1d10;background:transparent;font:700 13px Cinzel,serif;border-radius:8px;color:#2b1d10}
+.sk-per button.on{background:#2b1d10;color:#f3e6c6}
+.sk-board{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sk-team{border-radius:12px;padding:10px 8px 12px;text-align:center;color:var(--t);background:linear-gradient(160deg,color-mix(in srgb,var(--c) 80%,#fff),var(--c));border:2px solid var(--b);box-shadow:0 6px 14px rgba(0,0,0,.3)}
+.sk-team img{height:54px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.5))}
+.sk-team .n{display:block;font:700 14px Cinzel,serif}
+.sk-team .sc{display:block;font:700 64px/1.05 'Cinzel Decorative',serif;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.sk-team .wins{display:block;font:italic 14px 'IM Fell English',serif;opacity:.9}
+.sk-plus{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.sk-plus.one{grid-template-columns:1fr}
+.sk-plus button{min-height:52px;border:0;border-radius:10px;background:rgba(255,255,255,.92);color:#2b1d10;font:700 22px Cinzel,serif;box-shadow:0 3px 0 rgba(0,0,0,.35);cursor:pointer}
+.sk-plus button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.sk-minus{margin-top:6px;width:100%;min-height:36px;border:1px dashed rgba(255,255,255,.7);border-radius:8px;background:transparent;color:var(--t);font:700 13px Cinzel,serif;cursor:pointer}
+.sk-sync{text-align:center;font:italic 14px 'IM Fell English',serif;color:#2f6b3a;margin:10px 0 0}
+.sk-sync.err{color:#9b2c2c}
+.sk-win{text-align:center}
+.sk-win img{height:100px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+.sk-win h3{margin:6px 0 0;font:700 22px 'Cinzel Decorative',serif}
+.sk-win .fs{font:700 28px Cinzel,serif;margin:6px 0}
+.sk-award{margin:10px 0;padding:10px;border:2px solid #2f6b3a;border-radius:10px;background:rgba(47,107,58,.1);text-align:center}
+.sk-award b{font:700 17px Cinzel,serif;color:#2f6b3a}
+@media (orientation:landscape) and (max-height:520px){ body.sk-page .brand{display:none} body.sk-page .wrap{max-width:900px;padding-top:10px} .sk-team .sc{font-size:52px} .sk-team img{height:38px} }

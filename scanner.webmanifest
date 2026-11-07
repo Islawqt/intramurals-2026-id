@@ -1,0 +1,32 @@
+{
+  "id": "./scanner.html",
+  "name": "SSC Scanner · Intramurals 2026",
+  "short_name": "SSC Scanner",
+  "description": "Check-in and check-out scanner for Intramurals 2026 event passes.",
+  "start_url": "./scanner.html",
+  "scope": "./scanner",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#140e09",
+  "theme_color": "#140e09",
+  "icons": [
+    {
+      "src": "assets/app/scanner-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app/scanner-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app/scanner-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
