@@ -78,8 +78,37 @@ function renderOverview() {
   $('#bars').innerHTML = S.slice().sort((x, y) => y.won - x.won).map(r => `<div class="sb-bar" style="--c:${color(r.team)}"><span>${short(r.team)}</span><div class="tr"><div class="fi" style="width:${Math.max(2, r.won / mx * 100)}%"></div></div><span>${r.won}</span></div>`).join('');
   const recent = fin.slice().sort((x, y) => String(y.updated).localeCompare(String(x.updated))).slice(0, 6);
   $('#results').innerHTML = recent.map(m => { const l = m.winner === m.a ? m.b : m.a;
-    return `<div class="sb-res"><div><b>${esc(sportName(m.sport))} · ${esc(m.label)}</b><br><span class="w">${short(m.winner)}</span> beat ${short(l)}</div><div style="text-align:right">${scoreLine(m)}<br><small>Final</small></div></div>`; }).join('') || '<p class="sb-empty" style="padding:6px">No results yet.</p>';
+    return `<div class="sb-res${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><div><b>${esc(sportName(m.sport))} · ${esc(m.label)}</b><br><span class="w">${short(m.winner)}</span> beat ${short(l)}</div><div style="text-align:right">${scoreLine(m)}<br><small>Final</small></div></div>`; }).join('') || '<p class="sb-empty" style="padding:6px">No results yet.</p>';
+  renderLeaders();
 }
+function renderLeaders() {
+  const L = data.leaders || {}, sp = data.sports.filter(s => (L[s.id] || []).length);
+  $('#leadBox').hidden = !sp.length;
+  $('#leaders').innerHTML = sp.map(s => { const bb = s.scoreType === 'basketball';
+    return `<p class="adm-label">${esc(s.name)}</p><table class="sb-table sb-lead"><thead><tr><th>#</th><th>Player</th><th>PTS</th><th>${bb ? 'Fouls' : 'Errors'}</th><th>GP</th></tr></thead><tbody>${L[s.id].map((r, i) =>
+      `<tr><td class="sb-rank">${i + 1}</td><td class="team" style="--c:${color(r.team)}"><img src="${crest(r.team)}" alt="">${esc(pname(r.name))}<small>${esc(short(r.team))}</small></td><td class="sb-total">${r.p}</td><td>${r.f}</td><td>${r.gp}</td></tr>`).join('')}</tbody></table>`; }).join('');
+}
+// "Dela Cruz, Juan" → "Juan Dela Cruz"
+const pname = n => { const i = String(n).indexOf(','); return i < 0 ? n : (n.slice(i + 1).trim() + ' ' + n.slice(0, i).trim()); };
+const hasBox = m => !!(data.box && data.box[m.id] && data.box[m.id].length);
+// ---------- box score: tap a game ----------
+function openBox(id) {
+  const m = data.matches.find(x => x.id === id); if (!m || !hasBox(m)) return;
+  const s = data.sports.find(x => x.id === m.sport) || {}, bb = s.scoreType === 'basketball', B = data.box[id];
+  const side = t => { const rows = B.filter(r => r.team === t).sort((x, y) => (Number(x.jersey) || 99) - (Number(y.jersey) || 99));
+    const tp = rows.reduce((a, r) => a + r.p, 0), tf = rows.reduce((a, r) => a + r.f, 0);
+    return `<div class="bx-team" style="--c:${color(t)}"><h4><img src="${crest(t)}" alt="">${esc(houseName(t))}</h4><table class="sb-table"><thead><tr><th>#</th><th>Player</th><th>PTS</th><th>${bb ? 'F' : 'E'}</th></tr></thead><tbody>${rows.map(r =>
+      `<tr class="${bb && r.f >= 5 ? 'fo' : ''}"><td>${esc(r.jersey || '')}</td><td style="text-align:left">${esc(pname(r.name))}${bb && r.f >= 5 ? ' <small>fouled out</small>' : ''}</td><td class="sb-total">${r.p}</td><td>${r.f}</td></tr>`).join('') || '<tr><td colspan="4">No player stats</td></tr>'}</tbody><tfoot><tr><td></td><td style="text-align:left">Players total</td><td>${tp}</td><td>${tf}</td></tr></tfoot></table></div>`; };
+  $('#bxTitle').textContent = `${s.name || ''} · ${m.label}`;
+  $('#bxSub').textContent = m.status === 'Live' ? `LIVE · ${m.bestOf > 1 ? 'series ' + m.wa + '–' + m.wb + ' · ' : ''}${m.sa}–${m.sb}${m.period ? ' · ' + m.period : ''}` : m.status === 'Final' ? `Final · ${short(m.winner)} won · ${scoreLine(m)}` : '';
+  $('#bxBody').innerHTML = side(m.a) + side(m.b);
+  $('#bxNote').textContent = m.bestOf > 1 ? 'Totals across all games of the series.' : '';
+  const d = $('#boxDlg'); if (d.showModal) d.showModal(); else d.setAttribute('open', '');
+}
+document.addEventListener('click', e => { const t = e.target.closest('[data-m].tap'); if (t) openBox(t.dataset.m); });
+$('#bxClose').addEventListener('click', () => $('#boxDlg').close ? $('#boxDlg').close() : $('#boxDlg').removeAttribute('open'));
+$('#boxDlg').addEventListener('click', e => { if (e.target.id === 'boxDlg') $('#boxDlg').close(); });
+
 function scoreLine(m) {
   if (m.bestOf > 1) return `${m.wa} – ${m.wb}`;
   const g = String(m.games).split(',').pop();
@@ -88,11 +117,11 @@ function scoreLine(m) {
 function matchCard(m, live) {
   const per = m.bestOf > 1 ? `Game ${m.wa + m.wb + 1} · series ${m.wa}–${m.wb}${m.period ? ' · ' + esc(m.period) : ''}` : esc(m.period || '');
   const sa = live ? m.sa : '', sb = live ? m.sb : '';
-  return `<div class="sb-match panel"><div class="sb-mh"><span>${esc(sportName(m.sport))} · ${esc(m.label)}</span>${live ? '<span class="sb-tag"><i></i>LIVE</span>' : `<span>${fdate(m.date)} · ${f12(m.time)}</span>`}</div>
+  return `<div class="sb-match panel${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><div class="sb-mh"><span>${esc(sportName(m.sport))} · ${esc(m.label)}</span>${live ? '<span class="sb-tag"><i></i>LIVE</span>' : `<span>${fdate(m.date)} · ${f12(m.time)}</span>`}</div>
   <div class="sb-mr"><div class="sb-side"><img src="${crest(m.a)}" alt="">${short(m.a)}</div>
   <div class="sb-score">${live ? `<span id="s-${m.id}a" class="${sa > sb ? 'lead' : ''}">${sa}</span><i>vs</i><span id="s-${m.id}b" class="${sb > sa ? 'lead' : ''}">${sb}</span>` : '<i>vs</i>'}</div>
   <div class="sb-side r"><img src="${crest(m.b)}" alt="">${short(m.b)}</div></div>
-  <div class="sb-mf">${live ? per : esc(m.venue || '')}</div></div>`;
+  <div class="sb-mf">${live ? per : esc(m.venue || '')}${hasBox(m) ? ' · <u>Player stats</u>' : ''}</div></div>`;
 }
 
 // ---------- brackets ----------
@@ -160,7 +189,7 @@ function drawBracket(s, ms) {
       return t ? `<div class="br-t ${cls}" style="--c:${color(t)}"><i></i><img src="${crest(t)}" alt=""><span>${esc(houseName(t))}</span><b>${val(side)}</b></div>`
         : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>TBD</span><b></b></div>`; };
     const cap = `${m.date ? fdate(m.date).replace(/^\w+, /, '') + ' · ' : ''}${f12(m.time) ? f12(m.time) + ' · ' : ''}<b>${esc(m.label)}</b>${m.bestOf > 1 ? ' · Bo' + m.bestOf : ''}${live ? ' · <span class="lv">● LIVE</span>' : ''}`;
-    html += `<div class="br-m" style="left:${p.x}px;top:${p.y}px"><div class="br-cap">${cap}</div>${row('a')}${row('b')}</div>`;
+    html += `<div class="br-m${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}" style=""left:${p.x}px;top:${p.y}px"><div class="br-cap">${cap}</div>${row('a')}${row('b')}</div>`;
   });
   const fp = pos[fin.id], champ = fin.status === 'Final' ? fin.winner : '';
   html += `<div class="br-champ" style="left:${fp.x + CW}px;top:${fp.y + 6}px"><img class="${champ ? '' : 'dim'}" src="${champ ? crest(champ) : 'assets/og/crest-web.webp'}" alt="">Champion<b>${champ ? esc(houseName(champ)) : 'To be decided'}</b></div>`;
@@ -200,7 +229,7 @@ function renderSchedule() {
   ms.forEach(m => { (days[m.date || ''] = days[m.date || ''] || []).push(m); });
   $('#sched').innerHTML = Object.keys(days).sort((a, b) => (a || 'z').localeCompare(b || 'z')).map(d => `<div class="sc-day"><h4>${esc(fdate(d))}</h4>${days[d].map(m => {
     const st = m.status === 'Final' ? `<span class="sc-st f">Final · ${scoreLine(m)}</span>` : m.status === 'Live' ? `<span class="sc-st l">Live · ${m.bestOf > 1 ? m.wa + '–' + m.wb : m.sa + '–' + m.sb}</span>` : `<span class="sc-st">${esc(m.label)}</span>`;
-    return `<div class="sc-row"><span>${f12(m.time) || '—'}</span><span class="tms">${m.a ? short(m.a) : 'TBD'} vs ${m.b ? short(m.b) : 'TBD'}<small>${esc(sportName(m.sport))} · ${esc(m.label)} · ${esc(m.venue || '')}</small></span>${st}</div>`; }).join('')}</div>`).join('') || '<p class="sb-empty">No games yet.</p>';
+    return `<div class="sc-row${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><span>${f12(m.time) || '—'}</span><span class="tms">${m.a ? short(m.a) : 'TBD'} vs ${m.b ? short(m.b) : 'TBD'}<small>${esc(sportName(m.sport))} · ${esc(m.label)} · ${esc(m.venue || '')}</small></span>${st}</div>`; }).join('')}</div>`).join('') || '<p class="sb-empty">No games yet.</p>';
 }
 
 showTab(['ov', 'br', 'sc'].includes(tab) ? tab : 'ov');

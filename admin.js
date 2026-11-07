@@ -1,5 +1,6 @@
 // ===== Intramurals 2026 — SSC admin: check-in schedule + block/unblock passes =====
 const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const KEY_STORE = 'im26_admin_key';
 let key = null;
 let sched = { mode: 'auto', days: [] };
@@ -257,6 +258,8 @@ $('#scanTeam').addEventListener('change', async () => {
   inp.disabled = !team;
   inp.placeholder = !team ? 'Choose a team first' : ANYT(team) ? 'Start typing the person\'s name…' : 'Start typing a ' + houseName(team) + ' member…';
   $('#staffRule').textContent = ANYT(team) ? 'must be on a team list (SSC officer)' : 'must be on that team\'s list';
+  $('#scanSportWrap').hidden = team !== SCORER; $('#scanSport').required = team === SCORER;
+  if (team === SCORER) fillSportPick();
   if (!team) return staffState('', '');
   if (!memberCache[team]) {
     staffState('loading', ANYT(team) ? 'Loading all members…' : `Loading ${houseName(team)} members…`);
@@ -271,6 +274,15 @@ $('#scanTeam').addEventListener('change', async () => {
   inp.focus();
 });
 
+async function fillSportPick() {
+  if (!SP.sports.length) { try { const r = await api({ action: 'adminSports' }); if (r.ok) SP = r; } catch (e) {} }
+  const sel = $('#scanSport'), cur = sel.value, accs = cacheGet('scanners') || [];
+  sel.innerHTML = '<option value="">Choose sport…</option>' + SP.sports.map(s => { const n = accs.filter(a => a.team === SCORER && a.active && a.sport === s.id).length;
+    return `<option value="${s.id}"${n >= 2 ? ' disabled' : ''}>${esc(s.name)} (${n} of 2)</option>`; }).join('');
+  sel.value = cur;
+}
+const sportName = id => (SP.sports.find(s => s.id === id) || {}).name || (id ? id : 'no sport');
+
 function crestImg(team) {
   const img = document.createElement('img');
   const e = team === SCORER ? 'assets/app/scanner-192.png' : team === ALL_TEAMS ? CONFIG.LOGOS.ssc : houseStyle(houseName(team)).emblem;
@@ -284,7 +296,18 @@ function accRow(a) {
   row.className = 'acc-row' + (a.active ? '' : ' off');
   row.innerHTML = '<div class="acc-info"><b></b><small></small></div><div class="acc-btns"><button type="button" class="mini pin-btn">New PIN</button><button type="button" class="mini act-btn"></button></div>';
   row.querySelector('b').textContent = a.user;
-  row.querySelector('small').textContent = [a.staff, !a.active ? 'DISABLED' : !a.allowed ? 'over the limit: not usable' : a.last ? 'last login ' + a.last : 'not used yet'].filter(Boolean).join(' · ');
+  row.querySelector('small').textContent = [a.staff, a.team === SCORER ? 'scores ' + sportName(a.sport) : '', !a.active ? 'DISABLED' : !a.allowed ? (a.team === SCORER && !a.sport ? 'no sport: pick one' : 'over the limit: not usable') : a.last ? 'last login ' + a.last : 'not used yet'].filter(Boolean).join(' · ');
+  if (a.team === SCORER && SP.sports.length) {
+    const sel = document.createElement('select'); sel.className = 'mini sp-move'; sel.setAttribute('aria-label', 'Sport for ' + a.user);
+    sel.innerHTML = (a.sport ? '' : '<option value="">Pick sport…</option>') + SP.sports.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    sel.value = a.sport || '';
+    sel.addEventListener('change', async () => {
+      const r = await api({ action: 'adminScannerSport', user: a.user, sport: sel.value }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+      setMsg($('#scanMsg'), r.ok ? `${a.user} now scores ${sportName(sel.value)} (its phone must log in again)` : r.error, r.ok ? 'ok' : 'error');
+      if (!r.ok) sel.value = a.sport || ''; await loadScanners();
+    });
+    row.querySelector('.acc-btns').prepend(sel);
+  }
   const act = row.querySelector('.act-btn');
   act.textContent = a.active ? 'Disable' : 'Enable';
   act.classList.toggle('red', a.active);
@@ -325,10 +348,10 @@ function renderScanners(items) {
     nm.textContent = teamLabel(t);
     h.appendChild(nm);
     const cnt = document.createElement('em');
-    cnt.textContent = `${active} of ${t === SCORER ? 4 : 2}`;
+    cnt.textContent = t === SCORER ? `${active} · 2 per sport` : `${active} of 2`;
     h.appendChild(cnt);
     card.appendChild(h);
-    accs.forEach(a => card.appendChild(accRow(a)));
+    (t === SCORER ? accs.slice().sort((x, y) => sportName(x.sport).localeCompare(sportName(y.sport))) : accs).forEach(a => card.appendChild(accRow(a)));
     if (!accs.length) {
       const p = document.createElement('p');
       p.className = 'acc-none'; p.textContent = t === ALL_TEAMS ? 'No SSC scanner yet · needed for early check-outs' : t === SCORER ? 'No score keeper yet · needed to enter game scores' : 'No scanner yet';
@@ -351,6 +374,7 @@ async function loadScanners() {
       box.appendChild(c);
     });
   }
+  if (!SP.sports.length) { try { const r0 = await api({ action: 'adminSports' }); if (r0.ok) SP = r0; } catch (e) {} }
   try {
     const r = await api({ action: 'adminListScanners' });
     cacheSet('scanners', r.items || []);
@@ -372,8 +396,9 @@ $('#pinDone').addEventListener('click', () => { $('#pinBox').hidden = true; $('#
 
 $('#addScanForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const team = $('#scanTeam').value, staff = $('#scanStaff').value.trim();
+  const team = $('#scanTeam').value, staff = $('#scanStaff').value.trim(), sport = $('#scanSport').value;
   if (!team) { setMsg($('#scanMsg'), 'Choose a team.', 'error'); return; }
+  if (team === SCORER && !sport) { setMsg($('#scanMsg'), 'Choose the sport this officer will score.', 'error'); return; }
   const btn = $('#addScanBtn');
   busyBtn(btn, true);
   setMsg($('#scanMsg'), '');
@@ -390,12 +415,12 @@ $('#addScanForm').addEventListener('submit', async e => {
     card.classList.add('working');
   }
   try {
-    const r = await api({ action: 'adminAddScanner', team, staff });
+    const r = await api({ action: 'adminAddScanner', team, staff, sport: team === SCORER ? sport : '' });
     if (!r.ok) { setMsg($('#scanMsg'), r.error, 'error'); if (pending) pending.remove(); if (card) card.classList.remove('working'); return; }
     $('#scanStaff').value = '';
     checkStaff();
     showPin(r.user, r.pin, r.staff);   // r.staff is the name exactly as on the team list
-    await loadScanners();
+    await loadScanners(); if (team === SCORER) fillSportPick();
   } catch (err) {
     if (err.message !== 'unauthorized') setMsg($('#scanMsg'), 'Failed. Check your internet.', 'error');
     if (pending) pending.remove(); if (card) card.classList.remove('working');
@@ -864,7 +889,7 @@ key = getKey();
 if (key) open(); else show('keyScreen');
 
 // ---------- sports & brackets ----------
-let SP = { sports: [], matches: [] }, spEdit = null, spOpen = null;
+let SP = { sports: [], matches: [] }, spEdit = null, spOpen = null, spPl = null;
 const shortT = t => t ? houseName(t).split(' ')[0] : 'TBD';
 const typeName = { basketball: 'Basketball scoring', points: 'Points / sets', games: 'Win / loss per game' };
 async function loadSports(keep) {
@@ -880,12 +905,15 @@ function renderSports() {
   SP.sports.forEach(s => {
     const ms = SP.matches.filter(m => m.sport === s.id), done = ms.filter(m => m.status === 'Final').length, live = ms.some(m => m.status === 'Live');
     const d = document.createElement('div'); d.className = 'sp-card' + (spOpen === s.id ? ' open' : '');
-    d.innerHTML = `<div><b></b> <span class="sp-st"></span><small></small></div><div class="acc-btns"><button type="button" class="btn small ghostish" data-e>Edit</button><button type="button" class="btn small" data-g>Bracket &amp; games</button></div>`;
+    d.innerHTML = `<div><b></b> <span class="sp-st"></span><small></small></div><div class="acc-btns"><button type="button" class="btn small ghostish" data-e>Edit</button><button type="button" class="btn small ghostish" data-p>Players</button><button type="button" class="btn small" data-g>Bracket &amp; games</button></div>`;
     d.querySelector('b').textContent = s.name;
     const st = d.querySelector('.sp-st'); st.textContent = live ? 'LIVE' : s.status === 'Done' ? 'DONE' : ms.length ? 'READY' : 'NO BRACKET'; st.className = 'sp-st ' + (live ? 'live' : s.status === 'Done' ? 'done' : ms.length ? 'ready' : '');
     d.querySelector('small').textContent = `${s.format === 'double' ? 'Double' : 'Single'} elim · Bo${s.bestOf}${s.finalBestOf !== s.bestOf ? ' (final Bo' + s.finalBestOf + ')' : ''} · ${s.teams.length} teams · ${s.venue || 'no venue'}${ms.length ? ` · ${done} of ${ms.filter(m => m.a || m.b || m.status !== 'Scheduled').length || ms.length} games done` : ''}`;
+    const sc = (cacheGet('scanners') || []).filter(a => a.team === SCORER && a.active && a.sport === s.id).map(a => a.staff);
+    d.querySelector('small').textContent += ` · Scorers: ${sc.length ? sc.join(' & ') : 'none yet'}${sc.length === 1 ? ' (needs 2)' : ''}`;
     d.querySelector('[data-e]').addEventListener('click', () => openSportForm(s));
-    d.querySelector('[data-g]').addEventListener('click', () => { spOpen = spOpen === s.id ? null : s.id; $('#spForm').hidden = true; renderSports(); renderGames(); });
+    d.querySelector('[data-p]').addEventListener('click', () => { spPl = spPl === s.id ? null : s.id; spOpen = null; $('#spForm').hidden = true; $('#spGames').hidden = true; renderSports(); openPlayers(); });
+    d.querySelector('[data-g]').addEventListener('click', () => { spOpen = spOpen === s.id ? null : s.id; spPl = null; $('#spPlayers').hidden = true; $('#spForm').hidden = true; renderSports(); renderGames(); });
     box.appendChild(d);
   });
   if (!SP.sports.length) box.innerHTML = '<p class="adm-hint">No sports yet.</p>';
@@ -895,7 +923,7 @@ function teamChips(sel) {
   $('#spTeams').querySelectorAll('label').forEach(l => l.addEventListener('click', e => { e.preventDefault(); const i = l.querySelector('input'); if ($('#spTeams').classList.contains('locked')) return; i.checked = !i.checked; l.classList.toggle('on', i.checked); }));
 }
 function openSportForm(s) {
-  spEdit = s || null; spOpen = null; $('#spGames').hidden = true; renderSports();
+  spEdit = s || null; spOpen = null; spPl = null; $('#spGames').hidden = true; $('#spPlayers').hidden = true; renderSports();
   const f = $('#spForm'); f.hidden = false;
   $('#spFormTitle').textContent = s ? 'Edit ' + s.name : 'New sport';
   $('#spName').value = s ? s.name : ''; $('#spVenue').value = s ? s.venue : '';
@@ -971,6 +999,50 @@ function renderGames() {
   });
   if (!ms.length) L.innerHTML = '<p class="adm-hint">No bracket yet. Pick the options above and tap Make bracket.</p>';
 }
+// ---------- players per sport (from each house's registered members) ----------
+async function openPlayers() {
+  const box = $('#spPlayers'), s = SP.sports.find(x => x.id === spPl);
+  if (!s) { box.hidden = true; return; }
+  box.hidden = false; $('#spPTitle').textContent = s.name + ': players';
+  $('#spPNote').textContent = s.scoreType === 'games' ? 'Optional for win/loss sports (no per-player scoring). Listing players still shows who played.' : 'Pick players from each house\'s registered members. Scorers record points and fouls for these players. Jersey number is optional.';
+  const L = $('#spPList'); L.innerHTML = '<p class="adm-hint">Loading members…</p>'; setMsg($('#spPMsg'), '');
+  let r; try { r = await api({ action: 'adminRoster', sport: s.id }); } catch (e) { L.innerHTML = '<p class="msg error">Could not load. Check your internet.</p>'; return; }
+  if (!r.ok) { L.innerHTML = ''; return setMsg($('#spPMsg'), r.error, 'error'); }
+  if (spPl !== s.id) return;
+  L.innerHTML = '';
+  s.teams.forEach(team => {
+    let list = (r.roster[team] || []).map(p => Object.assign({}, p));
+    const mem = r.members[team] || [], dl = 'pl-dl-' + team.replace(/\W/g, '');
+    const card = document.createElement('div'); card.className = 'pl-card'; card.style.setProperty('--tc', houseStyle(houseName(team)).primary);
+    card.innerHTML = `<h4></h4><div class="pl-rows"></div><div class="pl-add"><input type="search" list="${dl}" placeholder="Add player: type a name" autocomplete="off"><datalist id="${dl}"></datalist><button type="button" class="btn small ghostish">Add</button></div><button type="button" class="btn small pl-save"><span>Save ${esc(shortT(team))}</span></button>`;
+    card.querySelector('h4').appendChild(crestImg(team)); card.querySelector('h4').append(houseName(team));
+    card.querySelector('datalist').innerHTML = mem.map(n => `<option value="${esc(n)}">`).join('');
+    const rows = card.querySelector('.pl-rows'), inp = card.querySelector('.pl-add input');
+    const draw = () => {
+      rows.innerHTML = list.length ? '' : '<p class="adm-hint">No players yet.</p>';
+      list.forEach((p, i) => { const d = document.createElement('div'); d.className = 'pl-row';
+        d.innerHTML = `<input class="pl-j" inputmode="numeric" maxlength="2" placeholder="#" aria-label="Jersey"><span></span><button type="button" class="mini red" aria-label="Remove">✕</button>`;
+        d.querySelector('span').textContent = p.name; const j = d.querySelector('.pl-j'); j.value = p.jersey || '';
+        j.addEventListener('input', () => { j.value = j.value.replace(/\D/g, ''); p.jersey = j.value; card.classList.add('dirty'); });
+        d.querySelector('button').addEventListener('click', () => { list.splice(i, 1); card.classList.add('dirty'); draw(); });
+        rows.appendChild(d); });
+    };
+    const add = () => { const v = inp.value.trim(); if (!v) return; const hit = mem.find(n => n.toLowerCase() === v.toLowerCase()) || (mem.filter(n => ntok(n).join(' ').includes(ntok(v).join(' '))).length === 1 ? mem.find(n => ntok(n).join(' ').includes(ntok(v).join(' '))) : null);
+      if (!hit) return setMsg($('#spPMsg'), `"${v}" is not on the ${houseName(team)} list. Pick a name from the suggestions.`, 'error');
+      if (list.some(p => p.name === hit)) return setMsg($('#spPMsg'), `${hit} is already listed.`, 'error');
+      list.push({ name: hit, jersey: '' }); inp.value = ''; setMsg($('#spPMsg'), ''); card.classList.add('dirty'); draw(); inp.focus(); };
+    card.querySelector('.pl-add button').addEventListener('click', add);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+    inp.addEventListener('change', () => { if (mem.includes(inp.value)) add(); });
+    card.querySelector('.pl-save').addEventListener('click', async e => { const b = e.currentTarget; busyBtn(b, true);
+      const x = await api({ action: 'adminRosterSave', sport: s.id, team, players: list }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+      busyBtn(b, false); setMsg($('#spPMsg'), x.ok ? `Saved ${houseName(team)}: ${x.players.length} players` : x.error, x.ok ? 'ok' : 'error');
+      if (x.ok) { list = x.players.map(p => Object.assign({}, p)); card.classList.remove('dirty'); draw(); } });
+    draw(); L.appendChild(card);
+  });
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 $('#gGo').addEventListener('click', async () => {
   const s = SP.sports.find(x => x.id === spOpen); if (!s) return;
   if (SP.matches.some(m => m.sport === s.id) && !confirmTwice('gen:' + s.id, `Tap again: the ${s.name} bracket and all its scores are replaced`, $('#gMsg'))) return;

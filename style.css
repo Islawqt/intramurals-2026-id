@@ -982,6 +982,16 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .sp-games{margin-top:14px}
 .sp-gen{padding:12px;margin-bottom:10px}
 .sp-gen::before{display:none}
+.pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:8px}
+.pl-card{border:1px solid rgba(90,60,30,.3);border-top:4px solid var(--tc,#8a6a3a);border-radius:10px;padding:10px 12px 12px;background:rgba(255,250,235,.55)}
+.pl-card.dirty{box-shadow:0 0 0 2px rgba(201,162,74,.6)}
+.pl-card h4{display:flex;align-items:center;gap:8px;margin:0 0 6px;font:700 15px Cinzel,serif;color:#3b2512}.pl-card h4 img{height:26px}
+.pl-row{display:grid;grid-template-columns:46px 1fr auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed rgba(90,60,30,.2);font:600 15px 'EB Garamond',serif}
+.pl-row .pl-j{width:46px;text-align:center;padding:6px 4px;font:700 15px Cinzel,serif}
+.pl-add{display:grid;grid-template-columns:1fr auto;gap:6px;margin:8px 0}
+.pl-add input{min-width:0}
+.pl-save{width:100%}
+.sp-move{max-width:130px;padding:4px 6px;font-size:13px}
 .g-row{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;padding:9px 6px;border-bottom:1px solid rgba(90,60,30,.25)}
 .g-row .acc-btns{grid-column:1/-1;flex-wrap:wrap}
 .g-row b{font:700 14px Cinzel,serif}.g-row small{display:block;font:italic 14px 'IM Fell English',serif;color:var(--ink-soft)}
