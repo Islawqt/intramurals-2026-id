@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+  <meta name="app-version" content="20261107101014"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlay Maker · Sportfest 2026</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c9a24a;--gold2:#f1d27a;--ink:#2b1d10;--parch:#f3e6c6}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0,#3a2614,#140c06 70%);color:var(--parch);font:17px 'EB Garamond',serif}
+header{text-align:center;padding:22px 16px 6px}
+header small{font:700 13px Cinzel,serif;letter-spacing:.3em;color:var(--gold)}
+header h1{margin:4px 0 0;font:700 32px Cinzel,serif;color:var(--parch)}
+header p{margin:6px 0 0;font:italic 17px 'IM Fell English',serif;color:#cbb88f}
+main{max-width:1280px;margin:0 auto;padding:16px;display:grid;grid-template-columns:360px 1fr;gap:18px;align-items:start}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,#f7ecd2,#e8d4a6);color:var(--ink);border:2px solid var(--gold);border-radius:12px;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.card h2{margin:0 0 10px;font:700 15px Cinzel,serif;letter-spacing:.14em;color:#5a3d1c}
+label{display:block;margin:0 0 10px;font:700 12px Cinzel,serif;letter-spacing:.1em;color:#5a3d1c}
+select,input{width:100%;margin-top:4px;padding:9px 10px;border:1.5px solid #a8864a;border-radius:8px;background:#fffaf0;font:600 16px 'EB Garamond',serif;color:var(--ink)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.vs{display:grid;grid-template-columns:1fr;gap:0}
+.vs b{display:block;text-align:center;margin:-4px 0 6px;font:700 16px Cinzel,serif;color:#8e1a1a}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 10px}
+.chips button{padding:5px 9px;border:1px solid #a8864a;border-radius:999px;background:#fffaf0;font:600 13px 'EB Garamond',serif;cursor:pointer;color:var(--ink)}
+.chips button:hover{background:#f1d27a}
+.btn{display:block;width:100%;margin-top:8px;padding:11px;border:2px solid #2b1d10;border-radius:10px;background:#2b1d10;color:var(--gold2);font:700 15px Cinzel,serif;letter-spacing:.08em;cursor:pointer}
+.btn.ghost{background:transparent;color:#2b1d10}
+.link{margin-top:10px;padding:8px 10px;border:1px dashed #a8864a;border-radius:8px;background:#fffaf0;font:13px monospace;word-break:break-all;color:#4a3518}
+.msg{min-height:20px;margin:6px 0 0;font:italic 15px 'IM Fell English',serif;color:#2f6b3a}
+details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-spacing:.1em;color:#5a3d1c}
+.pv{position:relative}
+.pv .bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font:700 13px Cinzel,serif;letter-spacing:.12em;color:var(--gold)}
+.pv .bar span button{margin-left:6px;padding:4px 10px;border:1px solid var(--gold);border-radius:999px;background:transparent;color:var(--gold2);font:600 13px 'EB Garamond',serif;cursor:pointer}
+.pv .bar span button.on{background:var(--gold);color:#1c120a}
+.screen{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border:2px solid var(--gold);border-radius:8px;
+  background:repeating-conic-gradient(#3a3a3a 0 25%,#2c2c2c 0 50%) 0 0/20px 20px}
+.screen.game{background:radial-gradient(ellipse at 45% 60%,#3d5a35 0,#1d3122 50%,#0e1a12 100%)}
+.screen iframe{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;transform-origin:0 0;pointer-events:none}
+.help{margin-top:14px;font-size:16px;color:#e9d6a8}
+.help b{color:var(--gold2)}
+.help ol{padding-left:20px}
+</style></head>
+<body>
+<header><small>SPORTFEST 2026 · MOBILE LEGENDS</small><h1>Overlay Maker</h1><p>Pick the matchup, copy the link, paste it into OBS as a Browser Source (1920×1080).</p></header>
+<main>
+  <section class="card">
+    <h2>MATCHUP</h2>
+    <div class="vs">
+      <label>Left team<select id="a"></select></label><b>VS</b>
+      <label>Right team<select id="b"></select></label>
+    </div>
+    <button class="btn ghost" id="swap" type="button">⇄ Swap sides</button>
+    <h2 style="margin-top:16px">MATCH DETAILS</h2>
+    <label>Stage<input id="stage" value="Grand Final" maxlength="28"></label>
+    <div class="chips" id="stages"></div>
+    <div class="row3">
+      <label>Best of<select id="bo"><option>1</option><option>3</option><option selected>5</option></select></label>
+      <label>Game no.<input id="game" type="number" min="1" max="7" value="1"></label>
+      <label>&nbsp;<button class="btn ghost" id="auto" type="button" style="margin:4px 0 0;padding:9px">Auto game</button></label>
+    </div>
+    <div class="row">
+      <label>Left wins<input id="wa" type="number" min="0" max="4" value="0"></label>
+      <label>Right wins<input id="wb" type="number" min="0" max="4" value="0"></label>
+    </div>
+    <details><summary>CUTOUT POSITION (only if your game bar sits elsewhere)</summary>
+      <div class="row3" style="margin-top:8px">
+        <label>Center x<input id="cx" type="number" value="894"></label>
+        <label>Width<input id="cw" type="number" value="840"></label>
+        <label>Height<input id="ch" type="number" value="50"></label>
+      </div>
+      <label style="display:flex;gap:8px;align-items:center"><input id="al" type="checkbox" style="width:auto;margin:0"> Show alignment guide in OBS</label>
+    </details>
+    <button class="btn" id="copy" type="button">Copy OBS link</button>
+    <button class="btn ghost" id="open" type="button">Open full size</button>
+    <div class="link" id="link"></div>
+    <p class="msg" id="msg"></p>
+    <details><summary>LIVE MODE (no typing during the event)</summary>
+      <p style="margin:8px 0 0;font-size:15px">This link always shows the match being scored right now, and updates by itself from the Score Keeper app:</p>
+      <div class="link" id="live"></div>
+      <button class="btn ghost" id="copyLive" type="button">Copy live link</button>
+    </details>
+  </section>
+  <section class="pv">
+    <div class="bar">PREVIEW<span><button type="button" data-bg="ck" class="on">Transparent</button><button type="button" data-bg="game">On game</button></span></div>
+    <div class="screen" id="screen"><iframe id="frame" title="Overlay preview"></iframe></div>
+    <div class="help">
+      <b>In OBS:</b>
+      <ol>
+        <li>Sources → <b>+</b> → <b>Browser</b>. Paste the link. Width <b>1920</b>, height <b>1080</b>.</li>
+        <li>Put it <b>above</b> your game capture in the source list.</li>
+        <li>Between games, update the game number and wins here and paste the new link (or use <b>Live mode</b>, which does it by itself).</li>
+      </ol>
+    </div>
+  </section>
+</main>
+<script src="config.js?v=20261107101014"></script>
+<script>
+const $ = s => document.querySelector(s);
+const HOUSES = Object.keys(CONFIG.HOUSES);                       // full names, e.g. "Phoenix Legion"
+const STAGES = ['Play-in 1', 'Play-in 2', 'Play-in 3', 'UB Semifinal', 'UB Final', 'LB Round 1', 'LB Round 2', 'LB Round 3', 'LB Final', 'Grand Final'];
+const fill = (sel, v) => { sel.innerHTML = HOUSES.map(h => `<option value="${h}">${h}</option>`).join(''); sel.value = v; };
+fill($('#a'), 'Phoenix Legion'); fill($('#b'), 'Gryffindor Titans');
+$('#stages').innerHTML = STAGES.map(s => `<button type="button">${s}</button>`).join('');
+$('#stages').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('#stage').value = b.textContent; if (/Grand Final/.test(b.textContent)) $('#bo').value = 5; else if ($('#bo').value === '5') $('#bo').value = 1; upd(); }));
+const base = new URL('overlay.html', location.href).href;
+function params() {
+  const bo = +$('#bo').value, need = Math.floor(bo / 2) + 1;
+  const wa = Math.min(need, Math.max(0, +$('#wa').value || 0)), wb = Math.min(need, Math.max(0, +$('#wb').value || 0));
+  const p = new URLSearchParams({ a: $('#a').value, b: $('#b').value, stage: $('#stage').value.trim() || 'Match', bo, game: Math.max(1, Math.min(bo, +$('#game').value || 1)), wa, wb });
+  [['cx', 894], ['cw', 840], ['ch', 50]].forEach(([k, d]) => { if (+$('#' + k).value && +$('#' + k).value !== d) p.set(k, $('#' + k).value); });
+  if ($('#al').checked) p.set('align', 1);
+  return p;
+}
+let bg = 'ck';
+function upd() {
+  if ($('#a').value === $('#b').value) { $('#msg').style.color = '#9b2c2c'; $('#msg').textContent = 'Pick two different houses.'; }
+  else { $('#msg').style.color = ''; if (/different/.test($('#msg').textContent)) $('#msg').textContent = ''; }
+  const p = params(), url = base + '?' + p;
+  $('#link').textContent = url;
+  $('#frame').src = url + (bg === 'ck' ? '&ck=1' : '');
+}
+document.querySelectorAll('select,input').forEach(el => el.addEventListener('input', upd));
+$('#swap').addEventListener('click', () => { const a = $('#a').value; $('#a').value = $('#b').value; $('#b').value = a; const w = $('#wa').value; $('#wa').value = $('#wb').value; $('#wb').value = w; upd(); });
+$('#auto').addEventListener('click', () => { $('#game').value = (+$('#wa').value || 0) + (+$('#wb').value || 0) + 1; upd(); });
+const copy = async (t, m) => { try { await navigator.clipboard.writeText(t); $('#msg').textContent = m; } catch (e) { $('#msg').textContent = 'Select the link above and copy it.'; } };
+$('#copy').addEventListener('click', () => copy($('#link').textContent, 'Copied. Paste it into OBS → Browser source.'));
+$('#open').addEventListener('click', () => window.open($('#link').textContent, '_blank'));
+$('#live').textContent = base; $('#copyLive').addEventListener('click', () => copy(base, 'Live link copied.'));
+document.querySelectorAll('[data-bg]').forEach(b => b.addEventListener('click', () => { bg = b.dataset.bg; document.querySelectorAll('[data-bg]').forEach(x => x.classList.toggle('on', x === b)); $('#screen').className = 'screen' + (bg === 'game' ? ' game' : ''); upd(); }));
+// scale the 1920×1080 preview to fit
+const fit = () => { const w = $('#screen').clientWidth; $('#frame').style.transform = `scale(${w / 1920})`; };
+new ResizeObserver(fit).observe($('#screen')); fit(); upd();
+</script>
+</body></html>

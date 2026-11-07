@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+  <meta name="app-version" content="20261107101014">
+<title>Sportfest 2026 MLBB Overlay</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* 1920×1080 OBS Browser Source, Hogwarts style. Transparent except the ornaments; edges fade into the game.
+   The game's own stat bar shows inside the arch frame. ?cx ?cw ?ch move it · ?mw ?mh = minimap size. */
+:root{--gold:#c9a24a;--gold2:#f1d27a;--gold3:#8a6a2a;--ink:#2b1d10;--parch:#f3e6c6;--dark:#1c120a;
+  --cx:894px;--cw:840px;--ch:50px;--mw:334px;--mh:342px;
+  --gilt:linear-gradient(135deg,#5e3f12 0%,#c9a24a 18%,#fff1bd 30%,#d4ad55 42%,#7a5518 55%,#e9c96d 70%,#fff3c9 78%,#a77c2c 90%,#5e3f12 100%)}
+*{box-sizing:border-box}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:transparent;font-family:'EB Garamond',serif}
+body.ck{background:repeating-conic-gradient(#3a3a3a 0 25%,#2c2c2c 0 50%) 0 0/40px 40px}
+
+/* ================= MINIMAP: gilded portrait frame (right + bottom molding; the map itself stays clear) ================= */
+.pf{position:absolute;left:0;top:0;width:calc(var(--mw) + 10px);height:calc(var(--mh) + 10px);pointer-events:none;filter:drop-shadow(0 0 10px rgba(0,0,0,.65))}
+.pf .mr,.pf .mb{position:absolute;background:var(--gilt)}
+.pf .mr{right:0;top:0;width:10px;height:100%;box-shadow:inset 1.5px 0 0 #3a2508,inset -1px 0 0 #fff2c4}
+.pf .mb{left:0;bottom:0;height:10px;width:100%;box-shadow:inset 0 1.5px 0 #3a2508,inset 0 -1px 0 #fff2c4}
+/* beaded inner edge */
+.pf .mr::after,.pf .mb::after{content:'';position:absolute;background:radial-gradient(circle,#fff2c4 0 1.3px,#7a5518 1.8px,transparent 2.4px) 0 0/6px 6px}
+.pf .mr::after{left:2px;top:0;bottom:10px;width:6px}
+.pf .mb::after{top:2px;left:0;right:10px;height:6px}
+/* thin gold line hugging the top + left screen edges so the frame reads as a full portrait frame */
+.pf .tl{position:absolute;left:0;top:0;width:calc(100% - 8px);height:3px;background:var(--gilt)}
+.pf .ll{position:absolute;left:0;top:0;width:3px;height:calc(100% - 8px);background:var(--gilt)}
+.pf svg{position:absolute}
+.pf .ro{right:-17px;bottom:-17px;width:44px;height:44px}
+.pf .cap1{right:-5px;top:-3px;width:22px;height:15px}
+.pf .cap2{left:-3px;bottom:-5px;width:15px;height:22px}
+.pf .mid1{right:-12px;top:calc(50% - 30px);width:50px;height:60px}
+.pf .mid2{left:calc(50% - 30px);bottom:-12px;width:60px;height:50px}
+
+/* ================= STAT BAR: gothic gold arch trim, fades into the game ================= */
+.arch{position:absolute;top:0;left:calc(var(--cx) - var(--cw) / 2 - 14px);width:calc(var(--cw) + 28px);height:calc(var(--ch) + 14px);pointer-events:none}
+.arch::before{content:'';position:absolute;inset:0 4px 0 4px;border:3px solid transparent;border-top:0;border-radius:0 0 30px 30px;
+  background:linear-gradient(#0000,#0000) padding-box,var(--gilt) border-box;-webkit-mask:linear-gradient(#000 0 0) border-box,linear-gradient(#000 0 0) padding-box;-webkit-mask-composite:xor;mask-composite:exclude;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.8))}
+.arch svg{position:absolute;bottom:-18px;width:60px;height:40px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.7))}
+.arch .al{left:-22px}.arch .ar{right:-22px;transform:scaleX(-1)}
+
+/* ================= TEAM NAMES: house-color plates that fade out at their outer ends ================= */
+.names{position:absolute;top:calc(var(--ch) + 6px);left:calc(var(--cx) - var(--cw) / 2 - 24px);width:calc(var(--cw) + 48px);height:46px;display:grid;grid-template-columns:1fr 1fr;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.55))}
+.tp{position:relative;display:flex;align-items:center;overflow:hidden;padding:0 34px;font:700 25px Cinzel,serif;letter-spacing:.12em;color:var(--tx,#fff7e0);white-space:nowrap;
+  text-shadow:0 0 10px rgba(0,0,0,.6),0 2px 2px rgba(0,0,0,.7)}
+.tp::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 75%,#fff) 0,var(--c) 40%,color-mix(in srgb,var(--c) 60%,#000) 100%);
+  border-top:1.5px solid rgba(241,210,122,.9);border-bottom:2px solid rgba(201,162,74,.95)}
+.tp.a{justify-content:flex-end;padding-right:86px}
+.tp.b{justify-content:flex-start;padding-left:86px}
+.tp.a::before{border-left:2px solid rgba(201,162,74,.95)}
+.tp.b::before{border-right:2px solid rgba(201,162,74,.95)}
+
+/* ================= CENTER: Sportfest crest with candlelight + drifting gold dust ================= */
+.emb{position:absolute;top:calc(var(--ch) - 18px);left:var(--cx);transform:translateX(-50%);width:170px;height:190px;pointer-events:none}
+.emb .glow{position:absolute;left:50%;top:52%;width:240px;height:240px;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle,rgba(255,214,120,.55) 0,rgba(255,180,70,.22) 35%,transparent 68%);animation:flick 3.2s ease-in-out infinite}
+@keyframes flick{0%,100%{opacity:.85}30%{opacity:1}55%{opacity:.75}75%{opacity:.95}}
+.emb img{position:relative;width:138px;display:block;margin:0 auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.75))}
+.dust{position:absolute;inset:-20px -40px;overflow:visible}
+.dust i{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff3c4;box-shadow:0 0 6px 2px rgba(255,214,120,.8);opacity:0;animation:drift 6s linear infinite}
+@keyframes drift{0%{opacity:0;transform:translateY(0) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translateY(-70px) scale(1.1)}}
+
+/* ================= HOUSE BANNERS: crest + series ================= */
+.ban{position:absolute;top:0;width:118px;height:226px;filter:drop-shadow(0 10px 14px rgba(0,0,0,.6));animation:sway 7s ease-in-out infinite;transform-origin:50% 0;pointer-events:none}
+.ban.a{left:calc(var(--cx) - var(--cw) / 2 - 138px)}
+.ban.b{left:calc(var(--cx) + var(--cw) / 2 + 20px);animation-delay:-3.5s}
+@keyframes sway{50%{transform:rotate(.7deg)}}
+.ban .rod{position:absolute;top:0;left:-10px;right:-10px;height:12px;border-radius:6px;background:linear-gradient(180deg,#f6dc8c,#b38834 60%,#6e4c18)}
+.ban .rod::before,.ban .rod::after{content:'';position:absolute;top:-4px;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff0b8,#c9a24a 55%,#6e4c18)}
+.ban .rod::before{left:-7px}.ban .rod::after{right:-7px}
+.ban .cloth{position:absolute;top:8px;left:0;right:0;bottom:0;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%);
+  background:linear-gradient(90deg,rgba(0,0,0,.28),transparent 20%,rgba(255,255,255,.06) 50%,transparent 80%,rgba(0,0,0,.32)),
+             repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 2px,transparent 2px 5px),
+             linear-gradient(180deg,color-mix(in srgb,var(--c) 85%,#fff) 0,var(--c) 30%,color-mix(in srgb,var(--c) 60%,#000) 100%)}
+.ban .cloth::before{content:'';position:absolute;inset:7px 7px 0 7px;clip-path:polygon(0 0,100% 0,100% 83.5%,50% 98.3%,0 83.5%);border:2px solid var(--trim)}
+.ban .tas{position:absolute;bottom:-14px;left:50%;width:10px;height:22px;transform:translateX(-50%);background:linear-gradient(var(--gold2),var(--gold3));border-radius:2px 2px 5px 5px}
+.ban .in{position:absolute;top:26px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:12px}
+.ban img{height:100px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.pips{display:flex;gap:8px}
+.pip{width:14px;height:14px;transform:rotate(45deg);border:2px solid var(--trim);background:rgba(0,0,0,.3)}
+.pip.w{background:var(--gold2);border-color:#fff7d6;box-shadow:0 0 10px var(--gold2)}
+
+/* ================= TOP RIGHT: parchment scroll with STI + SSC + game details, soft edges + wax seal ================= */
+.org{position:absolute;top:0;right:0;width:470px;height:172px;pointer-events:none}
+.org .sc{position:absolute;inset:0 0 6px 0;padding:14px 22px 0 46px;
+  background:radial-gradient(ellipse at 60% 40%,#fbf2da 0,#efdcae 55%,#d9bd82 100%);
+  -webkit-mask:linear-gradient(90deg,transparent 0,#000 30px),linear-gradient(0deg,transparent 0,#000 22px);-webkit-mask-composite:source-in;
+  mask:linear-gradient(90deg,transparent 0,#000 30px),linear-gradient(0deg,transparent 0,#000 22px);mask-composite:intersect;
+  border-bottom-left-radius:60px 40px}
+.org .sc::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .3 0 0 0 0 .1 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:multiply}
+.org .lg{position:relative;display:flex;align-items:center;gap:18px}
+.org .lg img{height:60px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.org .lg i{width:1.5px;height:48px;background:rgba(120,80,30,.5)}
+.org .lg .tt b{display:block;font:700 19px Cinzel,serif;letter-spacing:.08em;color:var(--ink)}
+.org .lg .tt small{font:italic 15px 'IM Fell English',serif;color:#6a4a22}
+.org .gd{position:relative;margin-top:12px;display:flex;align-items:center;gap:12px;font:700 21px Cinzel,serif;letter-spacing:.08em;color:#3b2512;white-space:nowrap}
+.org .gd i{width:16px;height:16px;transform:rotate(45deg);border:1.5px solid #8a6a2a;background:var(--gold2)}
+.org .gd em{font-style:normal;color:#8e1a1a}
+.org .rule{position:relative;margin-top:8px;height:2px;width:320px;background:linear-gradient(90deg,transparent,#8a6a2a 20%,#8a6a2a 80%,transparent)}
+.org .seal{position:absolute;right:20px;bottom:0;width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#d4504a,#9b1c1c 55%,#5e0d0d);box-shadow:0 3px 8px rgba(0,0,0,.55),inset 0 0 0 4px rgba(0,0,0,.15);display:grid;place-items:center}
+.org .seal::before{content:'';position:absolute;inset:-5px;border-radius:46% 54% 50% 50%/55% 45% 55% 45%;background:inherit;z-index:-1;filter:brightness(.85)}
+.org .seal b{font:700 13px 'Cinzel Decorative',serif;color:#f6cfc4;text-shadow:0 1px 1px rgba(0,0,0,.4);letter-spacing:.02em}
+
+.guide{display:none;position:absolute;background:rgba(255,0,0,.3);outline:2px dashed #f44;align-items:center;justify-content:center;font:700 14px sans-serif;color:#fff;text-align:center}
+body.al .guide{display:flex}
+.guide.s{top:0;left:calc(var(--cx) - var(--cw) / 2);width:var(--cw);height:var(--ch)}
+.guide.m{top:0;left:0;width:var(--mw);height:var(--mh)}
+</style></head>
+<body>
+<!-- minimap portrait frame -->
+<div class="pf">
+  <div class="tl"></div><div class="ll"></div><div class="mr"></div><div class="mb"></div>
+  <svg class="cap1" viewBox="0 0 44 30"><path d="M4 26C10 10 26 2 40 4c-8 6-10 14-6 22z" fill="url(#gg)" stroke="#4a3010" stroke-width="1.5"/></svg>
+  <svg class="cap2" viewBox="0 0 30 44"><path d="M26 4C10 10 2 26 4 40c6-8 14-10 22-6z" fill="url(#gg)" stroke="#4a3010" stroke-width="1.5"/></svg>
+  <svg class="ro" viewBox="0 0 86 86">
+    <g transform="translate(43 43)">
+      <g fill="url(#gg)" stroke="#4a3010" stroke-width="1.5">
+        <path d="M0-40C8-26 8-16 0-10C-8-16-8-26 0-40z"/><path d="M0-40C8-26 8-16 0-10C-8-16-8-26 0-40z" transform="rotate(90)"/>
+        <path d="M0-40C8-26 8-16 0-10C-8-16-8-26 0-40z" transform="rotate(180)"/><path d="M0-40C8-26 8-16 0-10C-8-16-8-26 0-40z" transform="rotate(270)"/>
+        <path d="M0-30C5-20 5-14 0-10C-5-14-5-20 0-30z" transform="rotate(45)"/><path d="M0-30C5-20 5-14 0-10C-5-14-5-20 0-30z" transform="rotate(135)"/>
+        <path d="M0-30C5-20 5-14 0-10C-5-14-5-20 0-30z" transform="rotate(225)"/><path d="M0-30C5-20 5-14 0-10C-5-14-5-20 0-30z" transform="rotate(315)"/>
+      </g>
+      <circle r="13" fill="url(#gg)" stroke="#4a3010" stroke-width="2"/><circle r="7.5" fill="#7a1414" stroke="#f1d27a" stroke-width="1.5"/><circle cx="-2.5" cy="-2.5" r="2.2" fill="#ff9a8a" opacity=".8"/>
+    </g>
+  </svg>
+</div>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1bd"/><stop offset=".35" stop-color="#d4ad55"/><stop offset=".7" stop-color="#8a6a2a"/><stop offset="1" stop-color="#e9c96d"/></linearGradient>
+  <g id="leaf"><path d="M25 2C40 14 40 30 25 58C10 30 10 14 25 2z" fill="url(#gg)" stroke="#4a3010" stroke-width="1.5"/><path d="M25 8v44" stroke="#4a3010" stroke-width="1"/><circle cx="25" cy="30" r="5" fill="#7a1414" stroke="#f1d27a" stroke-width="1.2"/></g>
+</defs></svg>
+
+<!-- stat bar arch -->
+<div class="arch">
+  <svg class="al" viewBox="0 0 60 40"><path d="M58 2C40 4 34 12 30 22S16 38 4 36" fill="none" stroke="url(#gg)" stroke-width="4" stroke-linecap="round"/><path d="M40 6c-6 6-4 12 4 14" fill="none" stroke="url(#gg)" stroke-width="2.5"/><circle cx="7" cy="35" r="5" fill="url(#gg)" stroke="#4a3010"/></svg>
+  <svg class="ar" viewBox="0 0 60 40"><path d="M58 2C40 4 34 12 30 22S16 38 4 36" fill="none" stroke="url(#gg)" stroke-width="4" stroke-linecap="round"/><path d="M40 6c-6 6-4 12 4 14" fill="none" stroke="url(#gg)" stroke-width="2.5"/><circle cx="7" cy="35" r="5" fill="url(#gg)" stroke="#4a3010"/></svg>
+</div>
+
+<div class="names"><div class="tp a" id="nA"></div><div class="tp b" id="nB"></div></div>
+<div class="emb"><div class="glow"></div><div class="dust" id="dust"></div><img src="assets/og/crest-web.webp" alt="Sportfest 2026"></div>
+<div class="ban a" id="bA"></div>
+<div class="ban b" id="bB"></div>
+
+<div class="org"><div class="sc">
+  <div class="lg"><img id="sti" alt="STI"><img id="ssc" alt="SSC"><i></i><div class="tt"><b>SPORTFEST 2026</b><small>Mobile Legends · STI College Valencia</small></div></div>
+  <div class="gd" id="gd"></div><div class="rule"></div>
+</div></div>
+<div class="guide s">Game stat bar goes inside this box</div><div class="guide m">Game minimap</div>
+
+<script src="config.js?v=20261107101014"></script>
+<script>
+// Sportfest 2026 MLBB broadcast overlay (OBS Browser Source, 1920×1080). Automatic from the tournament data: crests, house names + colors, series, match + game.
+// URL: ?demo=1 sample · ?ck=1 checkerboard · ?bg=<img> preview background · ?align=1 guides · ?cx ?cw ?ch ?mw ?mh · ?match=<id>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s), R = document.documentElement.style;
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const H = t => houseStyle(t) || {}, crest = t => H(t).emblem || 'assets/og/crest-web.webp';
+['cx', 'cw', 'ch', 'mw', 'mh'].forEach(k => { const v = Number(Q.get(k)); if (v > 0) R.setProperty('--' + k, v + 'px'); });
+if (Q.get('ck')) document.body.classList.add('ck');
+if (Q.get('bg')) document.body.style.background = `url('${Q.get('bg')}') 0 0/1920px 1080px`;
+if (Q.get('align')) document.body.classList.add('al');
+$('#sti').src = CONFIG.LOGOS.sti; $('#ssc').src = CONFIG.LOGOS.ssc;
+// gold dust around the center crest
+$('#dust').innerHTML = Array.from({ length: 14 }, (_, i) => `<i style="left:${10 + Math.random() * 230}px;top:${60 + Math.random() * 150}px;animation-delay:${(-Math.random() * 6).toFixed(2)}s;animation-duration:${(4 + Math.random() * 4).toFixed(1)}s"></i>`).join('');
+
+const SPORT = Q.get('sport') || 'mlbb'; let data = null;
+function current() {
+  const ms = data.matches.filter(m => m.sport === SPORT);
+  if (Q.get('match')) return ms.find(m => m.id === Q.get('match'));
+  const t = (x, y) => String(x.date + x.time).localeCompare(String(y.date + y.time));
+  return ms.find(m => m.status === 'Live') || ms.filter(m => m.status === 'Scheduled' && m.a && m.b).sort(t)[0] || null;
+}
+// Overlay house colors (as chosen by the SSC): cloth/plate color, trim, plate text
+const OV = {
+  Gryffindor: { c: '#9c1a1c', trim: '#e3b52a', tx: '#fff7e0' },
+  Slytherin:  { c: '#1f5a35', trim: '#c0c0c0', tx: '#f2f2f2' },
+  Ravenclaw:  { c: '#1f3f8f', trim: '#c9965a', tx: '#f6ecd8' },
+  Hufflepuff: { c: '#e8b923', trim: '#1a1a1a', tx: '#1a1206' },
+  Dragon:     { c: '#9a7fd0', trim: '#f1e6ff', tx: '#ffffff' },
+  Phoenix:    { c: '#141414', trim: '#f39a2b', tx: '#f39a2b' } };
+const ov = t => OV[String(houseName(t)).split(' ')[0]] || { c: H(t).primary || '#555', trim: '#c9a24a', tx: '#fff' };
+function banner(el, t, wins, bo) {
+  const o = ov(t), need = Math.floor(bo / 2) + 1;
+  el.style.setProperty('--c', o.c); el.style.setProperty('--trim', o.trim);
+  el.innerHTML = `<div class="cloth"></div><div class="rod"></div><div class="tas"></div><div class="in"><img src="${crest(t)}" alt="">${need > 1 ? `<div class="pips">${Array.from({ length: need }, (_, i) => `<i class="pip${i < wins ? ' w' : ''}"></i>`).join('')}</div>` : ''}</div>`;
+}
+// plate color: Phoenix's near-black primary uses its ember orange so the plate is visible
+
+function paint() {
+  const m = data && current(); if (!m) return;
+  banner($('#bA'), m.a, m.wa, m.bestOf); banner($('#bB'), m.b, m.wb, m.bestOf);
+  [['#nA', m.a], ['#nB', m.b]].forEach(([id, t]) => { const o = ov(t); $(id).style.setProperty('--c', o.c); $(id).style.setProperty('--tx', o.tx); });
+  $('#nA').innerHTML = `<span>${esc(houseName(m.a).toUpperCase())}</span>`; $('#nB').innerHTML = `<span>${esc(houseName(m.b).toUpperCase())}</span>`;
+  // long house names shrink to fit their plate (never hidden behind the crest)
+  ['#nA', '#nB'].forEach(id => { const el = $(id), sp = el.firstChild, cs = getComputedStyle(el);
+    const room = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    let f = 25; el.style.fontSize = f + 'px'; el.style.letterSpacing = '.12em';
+    while (sp.offsetWidth > room && f > 14) { f -= 1; el.style.fontSize = f + 'px'; if (f < 23) el.style.letterSpacing = '.05em'; } });
+  const g = m.game || (m.wa + m.wb + 1);
+  $('#gd').innerHTML = `${esc(m.label.toUpperCase())}<i></i><em>GAME ${g}</em>${m.bestOf > 1 ? `<i></i>BO${m.bestOf}` : ''}`;
+}
+async function load() {
+  // manual mode (Overlay Maker link): ?a=Phoenix&b=Gryffindor&stage=Grand Final&game=4&bo=5&wa=2&wb=1
+  if (Q.get('a') && Q.get('b')) {
+    const bo = [1, 3, 5, 7].includes(+Q.get('bo')) ? +Q.get('bo') : 1, game = Math.max(1, +Q.get('game') || 1);
+    const wa = Math.max(0, +Q.get('wa') || 0), wb = Math.max(0, +Q.get('wb') || 0);
+    data = { matches: [{ id: 'manual', sport: SPORT, label: Q.get('stage') || 'Match', a: Q.get('a'), b: Q.get('b'), wa, wb, bestOf: bo, status: 'Live', game }] };
+    return paint();
+  }
+  if (Q.get('demo')) { data = { matches: [{ id: 'd', sport: 'mlbb', label: 'Grand Final', a: 'Phoenix', b: 'Gryffindor', wa: 2, wb: 1, bestOf: 5, status: 'Live' }] }; return paint(); }
+  try { const r = await (await fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"board"}' })).json(); if (r.ok && !r.hidden) { data = r; paint(); } } catch (e) {}
+}
+load(); if (!(Q.get('a') && Q.get('b'))) setInterval(load, 5000);
+</script>
+</body></html>
