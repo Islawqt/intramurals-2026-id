@@ -194,7 +194,7 @@ function drawBracket(s, ms) {
       return t ? `<div class="br-t ${cls}" style="--c:${color(t)}"><i></i><img src="${crest(t)}" alt=""><span>${esc(houseName(t))}</span><b>${val(side)}</b></div>`
         : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>TBD</span><b></b></div>`; };
     const cap = `${m.date ? fdate(m.date).replace(/^\w+, /, '') + ' · ' : ''}${f12(m.time) ? f12(m.time) + ' · ' : ''}<b>${esc(m.label)}</b>${m.bestOf > 1 ? ' · Bo' + m.bestOf : ''}${live ? ' · <span class="lv">● LIVE</span>' : ''}`;
-    html += `<div class="br-m${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}" style=""left:${p.x}px;top:${p.y}px"><div class="br-cap">${cap}</div>${row('a')}${row('b')}</div>`;
+    html += `<div class="br-m${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}" style="left:${p.x}px;top:${p.y}px"><div class="br-cap">${cap}</div>${row('a')}${row('b')}</div>`;
   });
   const fp = pos[fin.id], champ = fin.status === 'Final' ? fin.winner : '';
   html += `<div class="br-champ" style="left:${fp.x + CW}px;top:${fp.y + 6}px"><img class="${champ ? '' : 'dim'}" src="${champ ? crest(champ) : 'assets/og/crest-web.webp'}" alt="">Champion<b>${champ ? esc(houseName(champ)) : 'To be decided'}</b></div>`;
