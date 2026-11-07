@@ -891,13 +891,13 @@ if (key) open(); else show('keyScreen');
 // ---------- sports & brackets ----------
 let SP = { sports: [], matches: [] }, spEdit = null, spOpen = null, spPl = null;
 const shortT = t => t ? houseName(t).split(' ')[0] : 'TBD';
-const typeName = { basketball: 'Basketball scoring', points: 'Points / sets', games: 'Win / loss per game' };
+const typeName = { basketball: 'Basketball scoring', rally: 'Rally points', points: 'Rally points', pickleball: 'Pickleball', games: 'Win / loss per game' };
 async function loadSports(keep) {
   if (!keep) setMsg($('#spMsg'), SP.sports.length ? '' : 'Loading…');
   try {
     const r = await api({ action: 'adminSports' });
     if (!r.ok) return setMsg($('#spMsg'), r.error, 'error');
-    SP = r; setMsg($('#spMsg'), ''); renderSports(); paintBoardSw(); if (spOpen) renderGames();
+    SP = r; if (!keep) setMsg($('#spMsg'), ''); renderSports(); paintBoardSw(); if (spOpen) renderGames();
   } catch (e) { if (e.message !== 'unauthorized') setMsg($('#spMsg'), 'Could not load. Check your internet.', 'error'); }
 }
 // public scoreboard on/off
@@ -945,16 +945,57 @@ function openSportForm(s) {
   $('#spFormTitle').textContent = s ? 'Edit ' + s.name : 'New sport';
   $('#spName').value = s ? s.name : ''; $('#spVenue').value = s ? s.venue : '';
   $('#spFormat').value = s ? s.format : 'single'; $('#spBo').value = s ? s.bestOf : 1; $('#spFbo').value = s ? s.finalBestOf : 1;
-  $('#spType').value = s ? s.scoreType : 'points';
+  $('#spType').value = s ? s.scoreType : 'rally';
+  $('#spPreset').value = s ? guessPreset(s) : 'custom';
+  const r = (s && s.rules) || {};
+  $('#spTarget').value = r.target || ''; $('#spDeciding').value = r.deciding || ''; $('#spCap').value = r.cap || 0; $('#spMode').value = r.mode || 'doubles';
+  if (!s) applyPreset();
+  showRules();
   const p = s && Array.isArray(s.points) ? s.points : [10, 8, 6, 4, 2, 1];
   for (let i = 0; i < 6; i++) $('#spP' + (i + 1)).value = p[i] || 0;
   $('#spThird').checked = s ? s.third : true;
   teamChips(s ? s.teams : TEAMS);
   const locked = !!s && SP.matches.some(m => m.sport === s.id);
-  ['#spFormat', '#spBo', '#spFbo', '#spType', '#spThird'].forEach(x => { $(x).disabled = locked; });
+  ['#spFormat', '#spBo', '#spFbo', '#spPreset', '#spThird'].forEach(x => { $(x).disabled = locked; });
   $('#spTeams').classList.toggle('locked', locked); $('#spLockNote').hidden = !locked; $('#spDel').hidden = !s;
   f.scrollIntoView({ behavior: 'smooth', block: 'start' }); $('#spName').focus();
 }
+// sport presets (official rules; the admin can still change the numbers)
+const PRESETS = {
+  basketball:  { type: 'basketball', bo: 1, fbo: 1, note: 'FIBA: 4 quarters of 10 min. A player with 5 fouls leaves the game. From the 5th team foul in a quarter, fouls give free throws (overtime counts as Q4).' },
+  volleyball:  { type: 'rally', t: 25, d: 15, c: 0, bo: 3, fbo: 3, note: 'FIVB: every rally is a point. Set to 25, win by 2; deciding set to 15, win by 2.' },
+  badminton:   { type: 'rally', t: 21, d: 21, c: 30, bo: 3, fbo: 3, note: 'BWF: every rally is a point. Game to 21, win by 2; at 29-all the next point wins (30). Best of 3.' },
+  pickleball:  { type: 'pickleball', t: 11, d: 11, c: 0, bo: 3, fbo: 3, mode: 'doubles', note: 'Only the serving side scores. Game to 11, win by 2. Doubles score is called serving-receiving-server (start 0-0-2).' },
+  mlbb:        { type: 'games', bo: 1, fbo: 5, note: 'Tap who won each game.' },
+  tabletennis: { type: 'rally', t: 11, d: 11, c: 0, bo: 5, fbo: 5, note: 'Every rally is a point. Game to 11, win by 2. Check your league for the number of games.' },
+  sepak:       { type: 'rally', t: 21, d: 21, c: 0, bo: 3, fbo: 3, note: 'Every rally is a point. Check your league for the set length and any cap.' },
+  chess:       { type: 'games', bo: 1, fbo: 3, note: 'Tap who won each game.' },
+  custom:      { type: 'rally', t: 21, d: 21, c: 0, bo: 1, fbo: 1, note: 'Set the points to win a game. Win by 2 always applies; set a cap to stop long deuces.' },
+  winloss:     { type: 'games', bo: 1, fbo: 1, note: 'Tap who won each game.' } };
+function guessPreset(s) {
+  const r = s.rules || {}, id = String(s.id) + ' ' + String(s.name).toLowerCase();
+  if (s.scoreType === 'basketball') return 'basketball';
+  if (s.scoreType === 'pickleball') return 'pickleball';
+  if (s.scoreType === 'games') return /legend|mlbb/.test(id) ? 'mlbb' : /chess/.test(id) ? 'chess' : 'winloss';
+  if (/volley/.test(id)) return 'volleyball'; if (/badminton/.test(id)) return 'badminton'; if (/table/.test(id)) return 'tabletennis'; if (/sepak|takraw/.test(id)) return 'sepak';
+  return 'custom';
+}
+function applyPreset() {
+  const P = PRESETS[$('#spPreset').value] || PRESETS.custom;
+  $('#spType').value = P.type;
+  if (P.t) { $('#spTarget').value = P.t; $('#spDeciding').value = P.d; $('#spCap').value = P.c; }
+  if (P.mode) $('#spMode').value = P.mode;
+  $('#spBo').value = P.bo; $('#spFbo').value = P.fbo;
+  if (!$('#spName').value.trim() || Object.keys(PRESETS).some(k => $('#spName').value === ($('#spPreset').querySelector(`option[value="${k}"]`) || {}).textContent)) $('#spName').value = ({ basketball: 'Basketball', volleyball: 'Volleyball', badminton: 'Badminton', pickleball: 'Pickleball', mlbb: 'Mobile Legends', tabletennis: 'Table Tennis', sepak: 'Sepak Takraw', chess: 'Chess' })[$('#spPreset').value] || $('#spName').value;
+  showRules();
+}
+function showRules() {
+  const t = $('#spType').value, P = PRESETS[$('#spPreset').value] || {};
+  $('#spRules').style.display = t === 'rally' || t === 'pickleball' ? '' : 'none';
+  $('#spModeWrap').style.display = t === 'pickleball' ? '' : 'none';
+  $('#spRuleNote').textContent = P.note || '';
+}
+$('#spPreset').addEventListener('change', applyPreset);
 $('#spAdd').addEventListener('click', () => openSportForm(null));
 $('#spCancel').addEventListener('click', () => { $('#spForm').hidden = true; });
 $('#spForm').addEventListener('submit', async e => {
@@ -964,6 +1005,7 @@ $('#spForm').addEventListener('submit', async e => {
   try {
     const r = await api({ action: 'adminSportSave', sport: { id: spEdit && spEdit.id, name: $('#spName').value, venue: $('#spVenue').value, format: $('#spFormat').value,
       bestOf: +$('#spBo').value, finalBestOf: +$('#spFbo').value, scoreType: $('#spType').value, teams, third: $('#spThird').checked,
+      rules: { target: +$('#spTarget').value || 0, deciding: +$('#spDeciding').value || 0, cap: +$('#spCap').value || 0, mode: $('#spMode').value },
       points: [1, 2, 3, 4, 5, 6].map(i => +$('#spP' + i).value || 0) } });
     if (!r.ok) { setMsg($('#spMsg'), r.error, 'error'); return; }
     $('#spForm').hidden = true; setMsg($('#spMsg'), `Saved: ${r.sport.name}`, 'ok');

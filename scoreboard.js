@@ -6,6 +6,9 @@ const crest = t => houseStyle(t).emblem || 'assets/og/crest-192.png';
 const color = t => t ? houseStyle(t).primary : '#4a3a28';
 const f12 = t => { if (!t) return ''; const [h, m] = String(t).split(':').map(Number); return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
 const fdate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Date to follow';
+// ?demo=1 shows a sample tournament (fake results) so the layout can be seen before the games
+const DEMO = new URLSearchParams(location.search).get('demo') === '1';
+if (DEMO) document.body.classList.add('demo');
 let data = null, prev = {}, tab = 'ov', brSport = null, scSport = 'all';
 try { tab = localStorage.getItem('sb_tab') || 'ov'; brSport = localStorage.getItem('sb_sport'); } catch (e) {}
 
@@ -25,7 +28,7 @@ async function load() {
   if (busy || document.visibilityState !== 'visible') return;
   busy = true;
   try {
-    const res = await fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"board"}' });
+    const res = DEMO ? await fetch('assets/demo/board.json', { cache: 'no-store' }) : await fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"board"}' });
     const r = await res.json();
     if (!r.ok) throw new Error(r.error);
     lastOk = Date.now();
@@ -35,7 +38,7 @@ async function load() {
     if (closed) { data = null; $('#dot').className = 'sb-dot off'; $('#liveTxt').textContent = 'Not live yet'; return; }
     data = r;
     $('#dot').className = 'sb-dot';
-    $('#liveTxt').textContent = `Live · updates every 15 seconds · ${f12(r.now.time.slice(0, 5))}`;
+    $('#liveTxt').textContent = DEMO ? 'SAMPLE DATA · not real results' : `Live · updates every 15 seconds · ${f12(r.now.time.slice(0, 5))}`;
     render();
   } catch (e) {
     $('#dot').className = 'sb-dot off';
@@ -120,7 +123,8 @@ function scoreLine(m) {
   return /^\d+-\d+$/.test(g) ? g.replace('-', ' – ') : (m.winner === m.a ? 'W – L' : 'L – W');
 }
 function matchCard(m, live) {
-  const per = m.bestOf > 1 ? `Game ${m.wa + m.wb + 1} · series ${m.wa}–${m.wb}${m.period ? ' · ' + esc(m.period) : ''}` : esc(m.period || '');
+  const unit = /volley/i.test(sportName(m.sport)) ? 'Set' : 'Game';
+  const per = m.bestOf > 1 ? `${unit} ${m.wa + m.wb + 1} · series ${m.wa}–${m.wb}${m.period ? ' · ' + esc(m.period) : ''}` : esc(m.period || '');
   const sa = live ? m.sa : '', sb = live ? m.sb : '';
   return `<div class="sb-match panel${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><div class="sb-mh"><span>${esc(sportName(m.sport))} · ${esc(m.label)}</span>${live ? '<span class="sb-tag"><i></i>LIVE</span>' : `<span>${fdate(m.date)} · ${f12(m.time)}</span>`}</div>
   <div class="sb-mr"><div class="sb-side"><img src="${crest(m.a)}" alt="">${short(m.a)}</div>
