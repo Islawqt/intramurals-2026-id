@@ -59,8 +59,9 @@ function renderOverview() {
   const top = [[S[1], 'p2', 2], [S[0], 'p1', 1], [S[2], 'p3', 3]];
   $('#podium').innerHTML = anyPts ? top.map(([r, c, n]) => `<div class="sb-pod ${c}"><img src="${crest(r.team)}" alt=""><b>${esc(houseName(r.team))}</b><div class="pts">${r.points} <small>pts</small></div><div class="step">${n}</div></div>`).join('') : '';
   $('#rows').innerHTML = S.map((r, i) => `<tr><td class="sb-rank">${i + 1}</td><td class="team" style="--c:${color(r.team)}"><img src="${crest(r.team)}" alt="">${esc(houseName(r.team))}</td><td>${r.played}</td><td>${r.won}</td><td>${r.lost}</td><td class="sb-total">${r.points}</td></tr>`).join('');
-  const pts = data.sports.map(s => `${esc(s.name)} ${s.points.first}/${s.points.second}/${s.points.third}`).join(' · ');
-  $('#ptsNote').textContent = pts ? 'Points for 1st/2nd/3rd: ' + pts.replace(/&amp;/g, '&') : '';
+  const P = (data.sports[0] || {}).points, same = P && data.sports.every(s => String(s.points) === String(P));
+  $('#ptsNote').textContent = !P ? '' : 'Points by final place only · ' + (same ? ['1st', '2nd', '3rd', '4th', '5th', '6th'].map((n, i) => `${n} ${P[i]}`).join(' · ')
+    : data.sports.map(s => `${s.name} ${s.points.join('/')}`).join(' · '));
   const live = M.filter(m => m.status === 'Live');
   const next = M.filter(m => m.status === 'Scheduled' && playable(m)).sort(sortTime).slice(0, 3);
   $('#liveHead').textContent = live.length ? 'Live now' : 'Up next';

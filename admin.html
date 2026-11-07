@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="app-version" content="20261107060657">
+  <meta name="app-version" content="20261107071213">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#140e09">
@@ -27,15 +27,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="manifest" href="admin.webmanifest?v=20261107060657">
+  <link rel="manifest" href="admin.webmanifest?v=20261107071213">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/app/admin-192.png">
   <link rel="apple-touch-icon" href="assets/app/admin-180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="SSC Admin">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="style.css?v=20261107060657">
-  <script src="update.js?v=20261107060657" data-resume></script>
+  <link rel="stylesheet" href="style.css?v=20261107071213">
+  <script src="update.js?v=20261107071213" data-resume></script>
 </head>
 <body class="admin-page">
   <div class="sky" aria-hidden="true"></div>
@@ -250,7 +250,7 @@
           </div>
           <label>Scoring<select id="spType"><option value="basketball">Basketball (+1 / +2 / +3, quarters)</option><option value="points">Points (+1, each game is a set)</option><option value="games">Win / loss per game (Mobile Legends, chess)</option></select></label>
           <label>Teams</label><div class="att-chips" id="spTeams"></div>
-          <div class="sp-4"><label>1st pts<input id="spP1" type="number" min="0" max="100"></label><label>2nd<input id="spP2" type="number" min="0" max="100"></label><label>3rd<input id="spP3" type="number" min="0" max="100"></label><label>Others<input id="spP4" type="number" min="0" max="100"></label></div>
+          <p class="adm-hint" style="margin:6px 0 2px">Points by final place only (game wins don't add points)</p><div class="sp-6"><label>1st (Champion)<input id="spP1" type="number" min="0" max="100"></label><label>2nd<input id="spP2" type="number" min="0" max="100"></label><label>3rd<input id="spP3" type="number" min="0" max="100"></label><label>4th<input id="spP4" type="number" min="0" max="100"></label><label>5th<input id="spP5" type="number" min="0" max="100"></label><label>6th<input id="spP6" type="number" min="0" max="100"></label></div>
           <label class="agree"><input id="spThird" type="checkbox" checked> <span>3rd-place game (single elimination)</span></label>
           <p class="adm-hint" id="spLockNote" hidden>The bracket is already made: format, best of, scoring and teams are locked. Make a new bracket to change them.</p>
           <div class="row"><button id="spCancel" class="btn ghost" type="button">Cancel</button><button id="spSave" class="btn" type="submit"><span>Save sport</span></button></div>
@@ -297,8 +297,8 @@
     </div>
   </template>
 
-  <script src="config.js?v=20261107060657"></script>
-  <script src="admin.js?v=20261107060657"></script>
-  <script src="pwa.js?v=20261107060657"></script>
+  <script src="config.js?v=20261107071213"></script>
+  <script src="admin.js?v=20261107071213"></script>
+  <script src="pwa.js?v=20261107071213"></script>
 </body>
 </html>

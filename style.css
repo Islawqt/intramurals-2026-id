@@ -975,7 +975,7 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .sp-form select,.sp-gen select{width:100%;padding:10px;border:1px solid rgba(90,60,30,.45);border-radius:8px;background:#fdf8ea;font:16px 'EB Garamond',serif;color:var(--ink);margin-top:4px}
 .sp-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sp-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
-.sp-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sp-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.sp-6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.sp-6 label{font-size:13px}
 .sp-form .att-chips{margin:-6px 0 12px}
 .sp-form .att-chips.locked{opacity:.6}
 #spDel{margin-top:10px}
@@ -987,4 +987,4 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .g-row b{font:700 14px Cinzel,serif}.g-row small{display:block;font:italic 14px 'IM Fell English',serif;color:var(--ink-soft)}
 .g-row.live small{color:#9b2c2c;font-weight:600}.g-row.fin small{color:#2f6b3a}
 .g-when{display:flex;gap:6px}.g-when input{width:auto;padding:6px 8px;font-size:15px;margin:0}
-@media(max-width:560px){.sp-2,.sp-3{grid-template-columns:1fr}.sp-4{grid-template-columns:1fr 1fr}.g-row{grid-template-columns:1fr}}
+@media(max-width:560px){.sp-2,.sp-3{grid-template-columns:1fr}.sp-4{grid-template-columns:1fr 1fr}.sp-6{grid-template-columns:repeat(3,1fr)}.g-row{grid-template-columns:1fr}}

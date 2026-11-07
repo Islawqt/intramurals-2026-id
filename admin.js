@@ -901,8 +901,8 @@ function openSportForm(s) {
   $('#spName').value = s ? s.name : ''; $('#spVenue').value = s ? s.venue : '';
   $('#spFormat').value = s ? s.format : 'single'; $('#spBo').value = s ? s.bestOf : 1; $('#spFbo').value = s ? s.finalBestOf : 1;
   $('#spType').value = s ? s.scoreType : 'points';
-  const p = s ? s.points : { first: 10, second: 7, third: 5, other: 2 };
-  $('#spP1').value = p.first; $('#spP2').value = p.second; $('#spP3').value = p.third; $('#spP4').value = p.other;
+  const p = s && Array.isArray(s.points) ? s.points : [10, 8, 6, 4, 2, 1];
+  for (let i = 0; i < 6; i++) $('#spP' + (i + 1)).value = p[i] || 0;
   $('#spThird').checked = s ? s.third : true;
   teamChips(s ? s.teams : TEAMS);
   const locked = !!s && SP.matches.some(m => m.sport === s.id);
@@ -919,7 +919,7 @@ $('#spForm').addEventListener('submit', async e => {
   try {
     const r = await api({ action: 'adminSportSave', sport: { id: spEdit && spEdit.id, name: $('#spName').value, venue: $('#spVenue').value, format: $('#spFormat').value,
       bestOf: +$('#spBo').value, finalBestOf: +$('#spFbo').value, scoreType: $('#spType').value, teams, third: $('#spThird').checked,
-      points: { first: $('#spP1').value, second: $('#spP2').value, third: $('#spP3').value, other: $('#spP4').value } } });
+      points: [1, 2, 3, 4, 5, 6].map(i => +$('#spP' + i).value || 0) } });
     if (!r.ok) { setMsg($('#spMsg'), r.error, 'error'); return; }
     $('#spForm').hidden = true; setMsg($('#spMsg'), `Saved: ${r.sport.name}`, 'ok');
     await loadSports(true);
