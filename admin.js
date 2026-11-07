@@ -897,9 +897,26 @@ async function loadSports(keep) {
   try {
     const r = await api({ action: 'adminSports' });
     if (!r.ok) return setMsg($('#spMsg'), r.error, 'error');
-    SP = r; setMsg($('#spMsg'), ''); renderSports(); if (spOpen) renderGames();
+    SP = r; setMsg($('#spMsg'), ''); renderSports(); paintBoardSw(); if (spOpen) renderGames();
   } catch (e) { if (e.message !== 'unauthorized') setMsg($('#spMsg'), 'Could not load. Check your internet.', 'error'); }
 }
+// public scoreboard on/off
+function paintBoardSw() {
+  const on = !!SP.boardLive, b = $('#boardBtn');
+  $('#boardSw').classList.toggle('on', on); b.disabled = false;
+  $('#boardTxt').textContent = on ? 'LIVE: everyone can see scores, brackets and schedule.' : 'HIDDEN: the page shows "Opening soon". Score Keepers still work.';
+  b.querySelector('span').textContent = on ? 'Hide scoreboard' : 'Make it live';
+  b.classList.toggle('danger', on);
+}
+$('#boardBtn').addEventListener('click', async () => {
+  const on = !SP.boardLive;
+  if (!on && !confirmTwice('boardoff', 'Tap again to hide the public scoreboard', $('#spMsg'))) return;
+  const b = $('#boardBtn'); busyBtn(b, true);
+  const r = await api({ action: 'adminBoardLive', live: on }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+  busyBtn(b, false);
+  if (!r.ok) return setMsg($('#spMsg'), r.error, 'error');
+  SP.boardLive = r.boardLive; paintBoardSw(); setMsg($('#spMsg'), r.boardLive ? 'Scoreboard is now LIVE for everyone.' : 'Scoreboard hidden.', 'ok');
+});
 function renderSports() {
   const box = $('#spList'); box.innerHTML = '';
   SP.sports.forEach(s => {

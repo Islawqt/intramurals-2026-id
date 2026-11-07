@@ -982,6 +982,11 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .sp-games{margin-top:14px}
 .sp-gen{padding:12px;margin-bottom:10px}
 .sp-gen::before{display:none}
+.board-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin:0 0 12px;border:1px solid rgba(90,60,30,.35);border-left:6px solid #8a6a3a;border-radius:10px;background:rgba(255,250,235,.55)}
+.board-sw.on{border-left-color:#2f6b3a}
+.board-sw b{display:block;font:700 15px Cinzel,serif}.board-sw small{font:italic 14px 'IM Fell English',serif;color:#5a4630}
+.board-sw.on small{color:#2f6b3a}
+.board-sw .btn{width:auto;flex:none}
 .pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:8px}
 .pl-card{border:1px solid rgba(90,60,30,.3);border-top:4px solid var(--tc,#8a6a3a);border-radius:10px;padding:10px 12px 12px;background:rgba(255,250,235,.55)}
 .pl-card.dirty{box-shadow:0 0 0 2px rgba(201,162,74,.6)}

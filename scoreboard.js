@@ -28,7 +28,12 @@ async function load() {
     const res = await fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"board"}' });
     const r = await res.json();
     if (!r.ok) throw new Error(r.error);
-    data = r; lastOk = Date.now();
+    lastOk = Date.now();
+    const closed = !!r.hidden;
+    $('#closed').hidden = !closed; document.querySelector('.sb-tabs').hidden = closed;
+    document.querySelectorAll('.sb-pane').forEach(p => { p.hidden = closed || p.id !== tab; });
+    if (closed) { data = null; $('#dot').className = 'sb-dot off'; $('#liveTxt').textContent = 'Not live yet'; return; }
+    data = r;
     $('#dot').className = 'sb-dot';
     $('#liveTxt').textContent = `Live · updates every 15 seconds · ${f12(r.now.time.slice(0, 5))}`;
     render();

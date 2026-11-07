@@ -191,3 +191,8 @@
 .bx-team tfoot td{font-weight:700;border-top:2px solid rgba(90,60,30,.4)}
 .bx-team tr.fo td{opacity:.6}.bx-team tr.fo small{color:#9b2c2c;font:italic 12px 'IM Fell English',serif;opacity:1}
 @media (max-width:600px){.bx-body{grid-template-columns:1fr}}
+
+.sb-closed{max-width:520px;margin:10px auto;text-align:center;padding:24px 18px}
+.sb-closed img{height:120px;opacity:.85}
+.sb-closed h2{font:700 24px Cinzel,serif;letter-spacing:.06em;margin:8px 0}
+.sb-closed p{font:italic 17px 'IM Fell English',serif;color:#3b2512}
