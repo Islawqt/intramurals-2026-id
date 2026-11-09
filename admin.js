@@ -1053,6 +1053,7 @@ function showRules() {
   const t = $('#spType').value, P = PRESETS[$('#spPreset').value] || {};
   $('#spRules').style.display = t === 'rally' || t === 'pickleball' ? '' : 'none';
   $('#spModeWrap').style.display = t === 'pickleball' ? '' : 'none';
+  $('#spStreamWrap').style.display = $('#spPreset').value === 'mlbb' ? '' : 'none';   // live stream: MLBB only
   $('#spRuleNote').textContent = P.note || '';
 }
 $('#spPreset').addEventListener('change', applyPreset);
@@ -1258,6 +1259,7 @@ function openEd(id) {
     : 'Pick the teams by hand if needed (normally they fill in by themselves from earlier games).';
   const opts = v => `<option value="">TBD</option>` + s.teams.map(t => `<option value="${esc(t)}"${t === v ? ' selected' : ''}>${esc(houseName(t))}</option>`).join('');
   $('#mEdA').innerHTML = opts(m.a); $('#mEdB').innerHTML = opts(m.b); $('#mEdA').disabled = $('#mEdB').disabled = lockTeams;
+  $('#mEdStreamWrap').style.display = guessPreset(s) === 'mlbb' ? '' : 'none';
   $('#mEdDate').value = m.date || ''; $('#mEdTime').value = m.time || ''; $('#mEdStream').value = m.stream || '';
   $('#mEdSt').textContent = m.status === 'Final' ? `Final: ${houseName(m.winner)} won${m.bestOf > 1 ? ` ${Math.max(m.wa, m.wb)}–${Math.min(m.wa, m.wb)}` : ''}`
     : m.status === 'Live' ? `LIVE${m.bestOf > 1 ? ` · series ${m.wa}–${m.wb}` : ''} · ${m.sa}–${m.sb}` : (m.a && m.b ? 'Not played yet' : 'Waiting for teams');

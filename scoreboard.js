@@ -61,19 +61,14 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 const sportName = id => ((data.sports.find(s => s.id === id) || {}).name || '');
 const playable = m => m.a && m.b;
-const streamOf = m => /^https:\/\//.test(m.stream || '') ? m.stream : ((data.sports.find(s => s.id === m.sport) || {}).stream || '');
-const watchBtn = (m, replay) => { const u = replay ? (/^https:\/\//.test(m.stream || '') ? m.stream : '') : streamOf(m); return u ? `<a class="sb-wb${replay ? ' rp' : ''}" href="${esc(u)}" target="_blank" rel="noopener">${replay ? '▶ Replay' : '▶ Watch live'}</a>` : ''; };
-function paintWatch() {
-  const live = data.matches.filter(m => m.status === 'Live' && streamOf(m)), w = $('#watch');
-  w.hidden = !live.length; if (!live.length) return;
-  const m = live[0]; w.href = streamOf(m);
-  $('#watchTxt').textContent = `${sportName(m.sport)} · ${short(m.a)} vs ${short(m.b)}${live.length > 1 ? ` · +${live.length - 1} more live` : ''}`;
-}
+// Facebook live stream: MLBB only (link set in admin per sport, or per game)
+const isML = id => { const sp = data.sports.find(s => s.id === id) || {}; return id === 'mlbb' || /legend|mlbb/i.test(sp.name || ''); };
+const streamOf = m => !isML(m.sport) ? '' : /^https:\/\//.test(m.stream || '') ? m.stream : ((data.sports.find(s => s.id === m.sport) || {}).stream || '');
+const watchBtn = m => { const u = m.status === 'Live' ? streamOf(m) : ''; return u ? `<a class="sb-wb" href="${esc(u)}" target="_blank" rel="noopener">▶ Watch live</a>` : ''; };
 const sortTime = (x, y) => String(x.date + x.time).localeCompare(String(y.date + y.time));
 
 function render() {
   if (!data) return;
-  paintWatch();
   if (tab === 'ov') renderOverview();
   if (tab === 'br') renderBrackets();
   if (tab === 'sc') renderSchedule();
@@ -243,7 +238,7 @@ function renderSchedule() {
   $('#sched').innerHTML = order.map(d => `<div class="sc-day"><h4>${esc(fdate(d))}</h4>${days[d].map(m => {
     const st = m.status === 'Final' ? `<span class="sc-st f">Final · ${scoreLine(m)}</span>` : m.status === 'Live' ? `<span class="sc-st l">● Live · ${m.bestOf > 1 ? m.wa + '–' + m.wb : m.sa + '–' + m.sb}</span>` : `<span class="sc-st">Upcoming</span>`;
     const tm = t => t ? `<b class="${m.status === 'Final' ? (m.winner === t ? 'w' : 'l') : ''}">${short(t)}</b>` : '<b>TBD</b>';
-    const btn = m.status === 'Live' ? watchBtn(m) : m.status === 'Final' ? watchBtn(m, true) : '';
+    const btn = watchBtn(m);
     return `<div class="sc-row${hasBox(m) ? ' tap' : ''}${m.status === 'Live' ? ' live' : ''}" data-m="${esc(m.id)}"><span>${f12(m.time) || '—'}</span><span class="tms">${tm(m.a)} vs ${tm(m.b)}<small>${esc(sportName(m.sport))} · ${esc(m.label)}${m.venue ? ' · ' + esc(m.venue) : ''}</small></span><span class="sc-r">${st}${btn}</span></div>`; }).join('')}</div>`).join('')
     || `<p class="sb-empty">${{ live: 'No game is live right now.', up: 'No upcoming games.', end: 'No finished games yet.' }[scWhen] || 'No games yet.'}</p>`;
 }
