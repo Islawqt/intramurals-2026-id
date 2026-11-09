@@ -897,7 +897,7 @@ async function loadSports(keep) {
   try {
     const r = await api({ action: 'adminSports' });
     if (!r.ok) return setMsg($('#spMsg'), r.error, 'error');
-    SP = r; if (!keep) setMsg($('#spMsg'), ''); renderSports(); paintBoardSw(); if (spOpen) renderGames();
+    SP = r; if (!keep) setMsg($('#spMsg'), ''); renderSports(); paintBoardSw(); if (spOpen) renderGames(); if ($('#regBox').open) loadReg();
   } catch (e) { if (e.message !== 'unauthorized') setMsg($('#spMsg'), 'Could not load. Check your internet.', 'error'); }
 }
 // public scoreboard on/off
@@ -916,6 +916,47 @@ $('#boardBtn').addEventListener('click', async () => {
   busyBtn(b, false);
   if (!r.ok) return setMsg($('#spMsg'), r.error, 'error');
   SP.boardLive = r.boardLive; paintBoardSw(); setMsg($('#spMsg'), r.boardLive ? 'Scoreboard is now LIVE for everyone.' : 'Scoreboard hidden.', 'ok');
+});
+// MLBB team registration links (one private link per house)
+let REG = null;
+const regURL = key => new URL('mlbb-register.html?k=' + key, location.href).href;
+async function loadReg() {
+  const r = await api({ action: 'adminRegLinks' }).catch(() => ({ ok: false, error: 'Could not load. Check your internet.' }));
+  if (!r.ok) return setMsg($('#regMsg'), r.error, 'error');
+  REG = r; paintReg();
+}
+function paintReg() {
+  const r = REG, done = r.teams.filter(t => t.players.length >= 5).length;
+  $('#regTxt').textContent = `${done} of ${r.teams.length} houses registered`;
+  $('#regSw').classList.toggle('on', r.state === 'open');
+  $('#regState').textContent = r.state === 'open' ? 'OPEN' : r.state === 'started' ? 'LOCKED: group games have started' : r.state === 'nosport' ? 'No MLBB sport yet' : 'CLOSED';
+  $('#regBtn').querySelector('span').textContent = r.open ? 'Close registration' : 'Open registration'; $('#regBtn').classList.toggle('danger', r.open);
+  const order = r.roles.concat('6th Man');
+  $('#regList').innerHTML = r.teams.map(t => `<div class="reg-h" style="--tc:${houseStyle(houseName(t.team)).primary}">
+      <div class="reg-top"><img src="${(houseStyle(houseName(t.team)).emblem || '').replace('assets/crests/', 'assets/crests/sm/')}" alt=""><b>${esc(houseName(t.team))}</b>
+        <span class="sp-st ${t.players.length >= 5 ? 'done' : ''}">${t.players.length >= 5 ? (t.players.length === 6 ? '5 + SUB' : '5 PLAYERS') : 'NOT YET'}</span></div>
+      <div class="reg-link"><input readonly value="${esc(regURL(t.key))}" aria-label="${esc(houseName(t.team))} link"><button type="button" class="btn small" data-copy="${esc(t.team)}">Copy</button></div>
+      ${t.players.length ? `<ol class="reg-pl">${t.players.slice().sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role)).map(p => `<li><small>${esc(p.role || '—')}</small><b>${esc(p.name)}</b>${p.ign ? `<i>${esc(p.ign)}</i>` : ''}</li>`).join('')}</ol>
+        <p class="adm-hint">By ${esc(t.by || '—')} · ${esc(t.updated || '')}</p>` : ''}
+      <button type="button" class="btn small ghostish" data-new="${esc(t.team)}">New link (old one stops working)</button></div>`).join('');
+  $('#regList').querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+    const t = REG.teams.find(x => x.team === b.dataset.copy), txt = regURL(t.key);
+    try { await navigator.clipboard.writeText(txt); setMsg($('#regMsg'), `Copied the ${houseName(t.team)} link. Paste it in their group chat only.`, 'ok'); }
+    catch (e) { b.parentNode.querySelector('input').select(); setMsg($('#regMsg'), 'Selected: copy it with your keyboard or long-press.', ''); } }));
+  $('#regList').querySelectorAll('[data-new]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirmTwice('regnew:' + b.dataset.new, `Tap again: ${houseName(b.dataset.new)} gets a new link and the old one stops working`, $('#regMsg'))) return;
+    busyBtn(b, true); const r = await api({ action: 'adminRegNewLink', team: b.dataset.new }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+    if (!r.ok) { busyBtn(b, false); return setMsg($('#regMsg'), r.error, 'error'); }
+    REG = r; paintReg(); setMsg($('#regMsg'), `New ${houseName(b.dataset.new)} link made. Send it to their group chat.`, 'ok'); }));
+}
+$('#regBox').addEventListener('toggle', () => { if ($('#regBox').open) loadReg(); });
+$('#regBtn').addEventListener('click', async () => {
+  if (!REG) return; const open = !REG.open;
+  if (!open && !confirmTwice('regclose', 'Tap again to close MLBB registration', $('#regMsg'))) return;
+  const b = $('#regBtn'); busyBtn(b, true);
+  const r = await api({ action: 'adminRegOpen', open }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+  busyBtn(b, false); if (!r.ok) return setMsg($('#regMsg'), r.error, 'error');
+  REG = r; paintReg(); setMsg($('#regMsg'), open ? 'Registration is open.' : 'Registration closed.', 'ok');
 });
 function renderSports() {
   const box = $('#spList'); box.innerHTML = '';

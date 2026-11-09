@@ -251,3 +251,25 @@ body.demo::after{content:'SAMPLE DATA';position:fixed;top:14px;right:-38px;z-ind
 .rr-m .w{color:#f1d27a}.rr-m .l{opacity:.55}.rr-m .tbd{color:#8d7a5a;font-style:italic}
 .rr-m.live i{color:#ff6b6b;font-style:normal;font-weight:700}
 .rr-m.tap{cursor:pointer}
+/* MLBB team registration */
+.rg-crest{display:block;width:84px;height:auto;margin:8px auto 4px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))}
+.rg-page .panel h2{margin:0 0 6px}
+.rg-h2{margin-top:18px!important}
+.rg-h2 small{display:block;font:italic 15px 'IM Fell English',serif;letter-spacing:0;color:var(--ink-soft);text-transform:none}
+.rg-hint{margin:0 0 12px;font:italic 15px 'IM Fell English',serif;color:var(--ink-soft)}
+.rg-foot{margin-top:12px;text-align:center}
+.rg-row{display:grid;grid-template-columns:118px minmax(0,1fr) minmax(0,.8fr);gap:8px;align-items:center;margin-bottom:10px;padding:8px;border:1px solid rgba(90,60,30,.3);border-left:5px solid var(--house);border-radius:8px;background:rgba(255,250,235,.55)}
+.rg-row.sub{border-left-color:#8a7a5a;border-style:dashed}
+.rg-row input{margin:0;min-width:0}
+.rg-row.bad,.rg-row.dup{border-color:var(--danger);box-shadow:0 0 0 2px rgba(155,44,44,.25)}
+.rg-role{display:flex;align-items:center;gap:6px;font:700 13px Cinzel,serif;letter-spacing:.04em;color:var(--ink)}
+.rg-role i{font-style:normal;font-size:20px}
+@media(max-width:560px){.rg-row{grid-template-columns:minmax(0,1fr)}}
+.rg-by input{margin-top:6px}
+.rg-saved{margin:0 0 16px;padding:10px 12px;border:1.5px solid var(--ok);border-radius:10px;background:rgba(47,107,58,.08)}
+.rg-ok{margin:0 0 6px;color:var(--ok);font-weight:600}
+.rg-list{list-style:none;margin:0 0 8px;padding:0}
+.rg-list li{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(90,60,30,.18)}
+.rg-list li i{font-style:normal;font-size:20px;width:26px;text-align:center}
+.rg-list b{display:block;font-size:16px}
+.rg-list small{color:var(--ink-soft)}
