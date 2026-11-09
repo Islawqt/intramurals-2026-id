@@ -147,12 +147,12 @@ function renderBrackets() {
   const s = data.sports.find(x => x.id === brSport), ms = data.matches.filter(m => m.sport === s.id);
   $('#brTitle').textContent = s.name.toUpperCase();
   $('#brSub').textContent = `${s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single'} elimination · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
-  $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go to the upper bracket, losers to the lower bracket. Two losses and you’re out.'
-    : s.format === 'double' ? 'UB = upper bracket (no losses yet) · LB = lower bracket (one more loss and you’re out)' : (ms.some(m => m.bracket === 'P') ? 'Semifinal losers play for 3rd place.' : '');
+  $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go up to the upper bracket; losers start in the lower bracket. ↓ = dropped down after a loss. Two losses and you’re out.'
+    : s.format === 'double' ? 'UB = upper bracket (no losses yet) · LB = lower bracket (one more loss and you’re out) · ↓ = dropped down from the upper bracket' : (ms.some(m => m.bracket === 'P') ? 'Semifinal losers play for 3rd place.' : '');
   if (!ms.length) { $('#brCanvas').innerHTML = '<p class="sb-empty">The bracket for this sport is not out yet.</p>'; $('#brSize').style.width = ''; $('#brSize').style.height = '80px'; $('#brCanvas').style.transform = ''; return; }
   drawBracket(s, ms);
 }
-const BW = 200, CW = 250, SP = 108, CAP = 18, ROW = 36;
+const BW = 220, CW = 270, SP = 108, CAP = 18, ROW = 36;
 function drawBracket(s, ms) {
   const pos = {}, by = id => ms.find(m => m.id === id), tgt = w => String(w || '').split(':')[0];
   let top = 26, maxX = 0, html = '';
@@ -174,14 +174,18 @@ function drawBracket(s, ms) {
     return maxY;
   };
   const U = ms.filter(m => m.bracket === 'U'), L = ms.filter(m => m.bracket === 'L');
-  const dbl = L.length > 0;
-  if (dbl) html += `<div class="br-sec" style="left:0;top:0">UPPER BRACKET</div>`;
+  const dbl = L.length > 0, pin = U.some(m => /^Play-in/.test(m.label));
+  if (pin) html += `<div class="br-sec" style="left:0;top:0">PLAY-INS</div><div class="br-sec" style="left:${CW}px;top:0">UPPER BRACKET</div>`;
+  else if (dbl) html += `<div class="br-sec" style="left:0;top:0">UPPER BRACKET</div>`;
   let uMax = place(U, top);
   if (dbl) {
-    const lTop = uMax + SP + 30;
-    html += `<div class="br-sec" style="left:0;top:${lTop - 26}px">LOWER BRACKET</div>`;
+    const lTop = uMax + SP + 30, lx = Math.min(...L.map(m => m.round)) * CW;
+    html += `<div class="br-sec lb" style="left:${lx}px;top:${lTop - 26}px">LOWER BRACKET</div>`;
     place(L, lTop);
   }
+  // where each slot comes from: "Winner of Play-in 1" / "Loser of UB Semifinal"
+  const src = {};
+  ms.forEach(m => [['winTo', 'Winner'], ['loseTo', 'Loser']].forEach(([k, w]) => { const v = String(m[k] || ''); if (v) src[v] = { w, label: m.label }; }));
   ms.filter(m => m.bracket === 'G').forEach(m => {
     const fe = ms.filter(f => tgt(f.winTo) === m.id && pos[f.id]);
     pos[m.id] = { x: m.round * CW, y: fe.length ? fe.reduce((a, f) => a + pos[f.id].y, 0) / fe.length : top };
@@ -195,9 +199,10 @@ function drawBracket(s, ms) {
     const done = m.status === 'Final', live = m.status === 'Live';
     const val = side => { if (!m[side]) return ''; if (live) return m.bestOf > 1 ? (side === 'a' ? m.wa : m.wb) : (side === 'a' ? m.sa : m.sb);
       if (!done) return ''; if (m.bestOf > 1) return side === 'a' ? m.wa : m.wb; const g = String(m.games).split(',').pop().split('-'); return g.length === 2 ? g[side === 'a' ? 0 : 1] : (m.winner === m[side] ? 'W' : 'L'); };
-    const row = side => { const t = m[side]; const cls = !t ? 'tbd' : done ? (m.winner === t ? 'w' : 'l') : live ? 'live' : '';
-      return t ? `<div class="br-t ${cls}" style="--c:${color(t)}"><i></i><img src="${crest(t)}" alt=""><span>${esc(houseName(t))}</span><b>${val(side)}</b></div>`
-        : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>TBD</span><b></b></div>`; };
+    const row = side => { const t = m[side], from = src[m.id + ':' + side.toUpperCase()], drop = from && from.w === 'Loser';
+      const cls = !t ? 'tbd' : done ? (m.winner === t ? 'w' : 'l') : live ? 'live' : '';
+      return t ? `<div class="br-t ${cls}${drop ? ' drop' : ''}" style="--c:${color(t)}"${drop ? ` title="Dropped from ${esc(from.label)}"` : ''}><i></i><img src="${crest(t)}" alt=""><span>${drop ? '<u>↓</u>' : ''}${esc(houseName(t))}</span><b>${val(side)}</b></div>`
+        : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>${from ? `${from.w} of ${esc(from.label)}` : 'TBD'}</span><b></b></div>`; };
     const cap = `${m.date ? fdate(m.date).replace(/^\w+, /, '') + ' · ' : ''}${f12(m.time) ? f12(m.time) + ' · ' : ''}<b>${esc(m.label)}</b>${m.bestOf > 1 ? ' · Bo' + m.bestOf : ''}${live ? ' · <span class="lv">● LIVE</span>' : ''}`;
     html += `<div class="br-m${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}" style="left:${p.x}px;top:${p.y}px"><div class="br-cap">${cap}</div>${row('a')}${row('b')}</div>`;
   });

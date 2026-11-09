@@ -76,7 +76,7 @@
 .br-canvas svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
 .br-canvas svg path{fill:none;stroke:rgba(201,162,74,.55);stroke-width:1.5}
 .br-sec{position:absolute;font:700 12px Cinzel,serif;letter-spacing:.14em;color:#c9a24a}
-.br-m{position:absolute;width:200px}
+.br-m{position:absolute;width:220px}
 .br-cap{font:12px 'EB Garamond',serif;color:#b9a77f;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .br-cap b{color:#e9d6a8;font-weight:600}
 .br-cap .lv{color:#ff6b6b;font-weight:700}
@@ -215,3 +215,6 @@ body.demo::after{content:'SAMPLE DATA';position:fixed;top:14px;right:-38px;z-ind
 .sk-warn[hidden]{display:none}
 
 #leadBox .sb-h{color:#3b2512;text-shadow:none}
+
+.br-t.drop span u{text-decoration:none;margin-right:5px;color:#e08a5a;font:700 13px sans-serif}
+.br-t.tbd span{font-size:13px}
