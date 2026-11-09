@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-  <meta name="app-version" content="20261109052356"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="app-version" content="20261109053732"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Custom Overlay · Sportfest 2026</title>
 <meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
@@ -16,6 +16,10 @@ main{max-width:1280px;margin:0 auto;padding:16px;display:grid;grid-template-colu
 @media(max-width:900px){main{grid-template-columns:1fr}}
 .card{background:linear-gradient(180deg,#f7ecd2,#e8d4a6);color:var(--ink);border:2px solid var(--gold);border-radius:12px;padding:16px;box-shadow:0 10px 24px rgba(0,0,0,.5)}
 .card h2{margin:0 0 10px;font:700 15px Cinzel,serif;letter-spacing:.14em;color:#5a3d1c}
+#scr{display:grid;gap:6px;margin-bottom:12px}
+#scr button{display:block;width:100%;padding:9px 12px;text-align:left;border:1.5px solid #a8864a;border-radius:10px;background:#fffaf0;font:700 14px Cinzel,serif;letter-spacing:.06em;color:#2b1d10;cursor:pointer}
+#scr button small{display:block;font:italic 14px 'IM Fell English',serif;letter-spacing:0;color:#6a4a22}
+#scr button.on{background:#2b1d10;color:#f1d27a;border-color:#2b1d10}#scr button.on small{color:#e9d6a8}
 label{display:block;margin:0 0 10px;font:700 12px Cinzel,serif;letter-spacing:.1em;color:#5a3d1c}
 select,input{width:100%;margin-top:4px;padding:9px 10px;border:1.5px solid #a8864a;border-radius:8px;background:#fffaf0;font:600 16px 'EB Garamond',serif;color:var(--ink)}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -46,7 +50,12 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
 <header><small>SPORTFEST 2026 · MOBILE LEGENDS</small><h1>Custom Overlay</h1><p>Pick the matchup, copy the link, paste it into OBS as a Browser Source (1920×1080).</p></header>
 <main>
   <section class="card">
-    <h2>FROM THE SCHEDULE</h2>
+    <h2>SCREEN</h2>
+    <div class="scr" id="scr"><button type="button" data-s="game" class="on">In-game overlay<small>see-through, on top of the game</small></button><button type="button" data-s="wait">Waiting screen<small>full screen, before a game</small></button><button type="button" data-s="pause">Pause screen<small>full screen, game paused</small></button></div>
+    <div id="sceneOpts" hidden>
+      <div class="row"><label id="atWrap">Start time (countdown)<input id="at" type="time"></label><label>Message (optional)<input id="smsg" maxlength="60" placeholder="e.g. Technical pause"></label></div>
+    </div>
+    <h2 style="margin-top:14px">FROM THE SCHEDULE</h2>
     <label>Pick a game (fills everything below)<select id="pick"><option value="">Loading games…</option></select></label>
     <h2 style="margin-top:14px">MATCHUP</h2>
     <div class="vs">
@@ -66,7 +75,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
       <label>Left wins<input id="wa" type="number" min="0" max="4" value="0"></label>
       <label>Right wins<input id="wb" type="number" min="0" max="4" value="0"></label>
     </div>
-    <details><summary>CUTOUT POSITION (only if your game bar sits elsewhere)</summary>
+    <details id="cut"><summary>CUTOUT POSITION (only if your game bar sits elsewhere)</summary>
       <div class="row3" style="margin-top:8px">
         <label>Center x<input id="cx" type="number" value="894"></label>
         <label>Width<input id="cw" type="number" value="840"></label>
@@ -97,7 +106,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
     </div>
   </section>
 </main>
-<script src="config.js?v=20261109052356"></script>
+<script src="config.js?v=20261109053732"></script>
 <script>
 const $ = s => document.querySelector(s);
 const HOUSES = Object.keys(CONFIG.HOUSES);                       // full names, e.g. "Phoenix Legion"
@@ -106,13 +115,24 @@ const fill = (sel, v) => { sel.innerHTML = HOUSES.map(h => `<option value="${h}"
 fill($('#a'), 'Phoenix Legion'); fill($('#b'), 'Gryffindor Titans');
 $('#stages').innerHTML = STAGES.map(s => `<button type="button">${s}</button>`).join('');
 $('#stages').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('#stage').value = b.textContent; if (/Grand Final/.test(b.textContent)) $('#bo').value = 5; else if ($('#bo').value === '5') $('#bo').value = 1; upd(); }));
-const base = new URL('overlay.html', location.href).href;
+let scr = 'game';
+const BASES = { game: new URL('overlay.html', location.href).href, wait: new URL('scene.html', location.href).href, pause: new URL('scene.html', location.href).href };
+let base = BASES.game;
+document.querySelectorAll('#scr [data-s]').forEach(b => b.addEventListener('click', () => {
+  scr = b.dataset.s; base = BASES[scr];
+  document.querySelectorAll('#scr [data-s]').forEach(x => x.classList.toggle('on', x === b));
+  $('#sceneOpts').hidden = scr === 'game'; $('#atWrap').style.display = scr === 'wait' ? '' : 'none';
+  $('#smsg').placeholder = scr === 'pause' ? 'e.g. Technical pause · back in 5 minutes' : 'e.g. Players are drafting';
+  $('#cut').style.display = scr === 'game' ? '' : 'none';
+  liveLink(); upd(); }));
 function params() {
   const bo = +$('#bo').value, need = Math.floor(bo / 2) + 1;
   const wa = Math.min(need, Math.max(0, +$('#wa').value || 0)), wb = Math.min(need, Math.max(0, +$('#wb').value || 0));
   const p = new URLSearchParams({ a: $('#a').value, b: $('#b').value, stage: $('#stage').value.trim() || 'Match', bo, game: Math.max(1, Math.min(bo, +$('#game').value || 1)), wa, wb });
   [['cx', 894], ['cw', 840], ['ch', 50]].forEach(([k, d]) => { if (+$('#' + k).value && +$('#' + k).value !== d) p.set(k, $('#' + k).value); });
   if ($('#al').checked) p.set('align', 1);
+  if (scr !== 'game') { ['cx', 'cw', 'ch', 'align'].forEach(k => p.delete(k)); p.set('scene', scr);
+    if (scr === 'wait' && $('#at').value) p.set('at', $('#at').value); if ($('#smsg').value.trim()) p.set('msg', $('#smsg').value.trim()); }
   return p;
 }
 // fill from the tournament schedule (teams, stage, best of, series so far)
@@ -148,7 +168,9 @@ $('#auto').addEventListener('click', () => { $('#game').value = (+$('#wa').value
 const copy = async (t, m) => { try { await navigator.clipboard.writeText(t); $('#msg').textContent = m; } catch (e) { $('#msg').textContent = 'Select the link above and copy it.'; } };
 $('#copy').addEventListener('click', () => copy($('#link').textContent, 'Copied. Paste it into OBS → Browser source.'));
 $('#open').addEventListener('click', () => window.open($('#link').textContent, '_blank'));
-$('#live').textContent = base; $('#copyLive').addEventListener('click', () => copy(base, 'Live link copied.'));
+const liveURL = () => scr === 'game' ? base : base + '?scene=' + scr;
+function liveLink() { $('#live').textContent = liveURL(); }
+liveLink(); $('#copyLive').addEventListener('click', () => copy(liveURL(), 'Live link copied.'));
 document.querySelectorAll('[data-bg]').forEach(b => b.addEventListener('click', () => { bg = b.dataset.bg; document.querySelectorAll('[data-bg]').forEach(x => x.classList.toggle('on', x === b)); $('#screen').className = 'screen' + (bg === 'game' ? ' game' : ''); upd(); }));
 // scale the 1920×1080 preview to fit
 const fit = () => { const w = $('#screen').clientWidth; $('#frame').style.transform = `scale(${w / 1920})`; };

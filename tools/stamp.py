@@ -9,7 +9,7 @@ Run before every commit/push:   python3 tools/stamp.py
 import re, json, time, pathlib
 root = pathlib.Path(__file__).resolve().parent.parent
 v = time.strftime('%Y%m%d%H%M%S', time.gmtime())
-for page in ('index.html', 'admin.html', 'scanner.html', 'scoreboard.html', 'scorer.html', 'overlay.html', 'overlay-maker.html', 'mlbb-register.html'):
+for page in ('index.html', 'admin.html', 'scanner.html', 'scoreboard.html', 'scorer.html', 'overlay.html', 'overlay-maker.html', 'mlbb-register.html', 'scene.html'):
     p = root / page
     s = p.read_text()
     s = re.sub(r'((?:src|href)=")((?!https?:)[\w./-]+\.(?:js|css|webmanifest))(?:\?v=\w+)?"', rf'\1\2?v={v}"', s)
