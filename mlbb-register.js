@@ -2,7 +2,7 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const KEY = new URLSearchParams(location.search).get('k') || '';
-const ICON = { 'Gold Lane': '🪙', 'EXP Lane': '⚔️', 'Mid Lane': '🔮', 'Jungler': '🌿', 'Roamer': '🛡️', '6th Man': '🔁' };
+const DEADLINE = 'Monday, November 16, 2026';
 let D = null;
 const api = body => fetch(CONFIG.API_URL, { method: 'POST', body: JSON.stringify(body) }).then(r => r.json());
 
@@ -14,7 +14,7 @@ function match(v) {
 }
 function row(role, p, sub) {
   const d = document.createElement('div'); d.className = 'rg-row' + (sub ? ' sub' : ''); d.dataset.role = role;
-  d.innerHTML = `<div class="rg-role"><i>${ICON[role] || ''}</i><b>${esc(sub ? '6th Man' : role)}</b></div>
+  d.innerHTML = `<div class="rg-role"><b>${esc(sub ? '6th Man' : role)}</b></div>
     <input class="rg-name" list="names" placeholder="${sub ? 'Player name (optional)' : 'Player name'}" aria-label="${esc(role)} player" value="${esc(p.name || '')}">
     <input class="rg-ign" maxlength="24" placeholder="In-game name (IGN)" aria-label="${esc(role)} in-game name" value="${esc(p.ign || '')}">`;
   const nm = d.querySelector('.rg-name');
@@ -30,7 +30,7 @@ function check() {
 function rosterHTML(list) {
   const order = D.roles.concat(D.sub);
   return `<ol class="rg-list">${list.slice().sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role)).map(p =>
-    `<li><i>${ICON[p.role] || ''}</i><span><b>${esc(p.name)}</b><small>${esc(p.role)}${p.ign ? ' · IGN: ' + esc(p.ign) : ''}</small></span></li>`).join('')}</ol>`;
+    `<li><span><b>${esc(p.name)}</b><small>${esc(p.role)}${p.ign ? ' · IGN: ' + esc(p.ign) : ''}</small></span></li>`).join('')}</ol>`;
 }
 function paintSaved() {
   const s = $('#saved');
@@ -48,7 +48,7 @@ async function load() {
     document.documentElement.style.setProperty('--house', H.primary || '#c9a24a');
     if (H.emblem) $('#crest').src = H.emblem.replace('assets/crests/', 'assets/crests/sm/');
     $('#house').textContent = full; document.title = full + ' · MLBB Team Registration';
-    $('#sub').textContent = 'Mobile Legends team registration';
+    $('#sub').textContent = 'Mobile Legends team registration · Deadline: ' + DEADLINE;
     if (r.state !== 'open') return stop(r.state === 'started' ? 'Roster locked' : 'Registration closed',
       r.state === 'started' ? 'The games have started. Message the SSC for changes.' : r.state === 'nosport' ? 'MLBB is not set up yet. Try again later.' : 'Registration is closed. Message the SSC for changes.', r.roster);
     $('#names').innerHTML = r.names.map(n => `<option value="${esc(n)}">`).join('');
