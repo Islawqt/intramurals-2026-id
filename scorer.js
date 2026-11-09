@@ -1,4 +1,4 @@
-// ===== Sportfest 2026 Score Keeper: live scores → scoreboard; the winner moves on by itself =====
+// ===== Sportfest 2026 Scorer: live scores → scoreboard; the winner moves on by itself =====
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const short = t => t ? houseName(t).split(' ')[0] : 'TBD';
@@ -26,7 +26,7 @@ $('#keyForm').addEventListener('submit', async e => {
   try {
     const r = await api({ action: 'scanLogin', user, pin });
     if (!r.ok) { setMsg($('#keyMsg'), r.error, 'error'); pinUI.clear(); pinUI.shake(); return; }
-    if (r.team !== SCORER) { setMsg($('#keyMsg'), 'This is a scanner account. Ask the SSC admin for a Score Keeper account.', 'error'); pinUI.clear(); return; }
+    if (r.team !== SCORER) { setMsg($('#keyMsg'), 'This is a scanner account. Ask the SSC admin for a Scorer account.', 'error'); pinUI.clear(); return; }
     if (!r.sport) { setMsg($('#keyMsg'), 'No sport is assigned to this account yet. Ask the SSC admin.', 'error'); pinUI.clear(); return; }
     sess = { token: r.token, user: r.user, staff: r.staff, sport: r.sport }; setSess(sess); pinUI.clear(); setMsg($('#keyMsg'), '');
     openList();

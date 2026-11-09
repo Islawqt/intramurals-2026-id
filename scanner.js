@@ -209,7 +209,7 @@ $('#keyForm').addEventListener('submit', async e => {
   try {
     const r = await api({ action: 'scanLogin', user, pin });
     if (!r.ok) { $('#keyMsg').textContent = r.error; $('#keyMsg').className = 'msg error'; pinUI.clear(); pinUI.shake(); pinUI.focus(); return; }
-    if (r.team === 'Score keepers') { $('#keyMsg').textContent = 'This is a Score Keeper account. Open the Score Keeper app instead.'; $('#keyMsg').className = 'msg error'; pinUI.clear(); return; }
+    if (r.team === 'Score keepers') { $('#keyMsg').textContent = 'This is a Scorer account. Open the Scorer app instead.'; $('#keyMsg').className = 'msg error'; pinUI.clear(); return; }
     sess = { token: r.token, user: r.user, team: r.team, staff: r.staff };
     setSess(sess);
     pinUI.clear();

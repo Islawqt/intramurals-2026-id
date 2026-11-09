@@ -205,12 +205,12 @@ $('#saveSched').addEventListener('click', async () => {
 const TEAMS = Object.keys(CONFIG.HOUSES).map(k => (CONFIG.HOUSES[k].aliases || [k])[0]);
 const ALL_TEAMS = 'All teams';                       // SSC all-access scanner
 const SSC_COLOR = '#2b2116';
-const SCORER = 'Score keepers';                       // Score Keeper app accounts
+const SCORER = 'Score keepers';                       // Scorer app accounts
 const ANYT = t => t === ALL_TEAMS || t === SCORER;
-const teamLabel = t => t === ALL_TEAMS ? 'SSC · All teams' : t === SCORER ? 'Score Keepers (sports)' : houseName(t);
+const teamLabel = t => t === ALL_TEAMS ? 'SSC · All teams' : t === SCORER ? 'Scorers (sports)' : houseName(t);
 TEAMS.concat([ALL_TEAMS, SCORER]).forEach(t => {
   const o = document.createElement('option');
-  o.value = t; o.textContent = t === ALL_TEAMS ? 'All teams (SSC scanner)' : t === SCORER ? 'Score keeper (sports scoring)' : houseName(t);
+  o.value = t; o.textContent = t === ALL_TEAMS ? 'All teams (SSC scanner)' : t === SCORER ? 'Scorer (sports scoring)' : houseName(t);
   $('#scanTeam').appendChild(o);
 });
 TEAMS.forEach(t => {
@@ -354,7 +354,7 @@ function renderScanners(items) {
     (t === SCORER ? accs.slice().sort((x, y) => sportName(x.sport).localeCompare(sportName(y.sport))) : accs).forEach(a => card.appendChild(accRow(a)));
     if (!accs.length) {
       const p = document.createElement('p');
-      p.className = 'acc-none'; p.textContent = t === ALL_TEAMS ? 'No SSC scanner yet · needed for early check-outs' : t === SCORER ? 'No score keeper yet · needed to enter game scores' : 'No scanner yet';
+      p.className = 'acc-none'; p.textContent = t === ALL_TEAMS ? 'No SSC scanner yet · needed for early check-outs' : t === SCORER ? 'No scorer yet · needed to enter game scores' : 'No scanner yet';
       card.appendChild(p);
     }
     box.appendChild(card);
@@ -904,7 +904,7 @@ async function loadSports(keep) {
 function paintBoardSw() {
   const on = !!SP.boardLive, b = $('#boardBtn');
   $('#boardSw').classList.toggle('on', on); b.disabled = false;
-  $('#boardTxt').textContent = on ? 'LIVE: everyone can see scores, brackets and schedule.' : 'HIDDEN: the page shows "Opening soon". Score Keepers still work.';
+  $('#boardTxt').textContent = on ? 'LIVE: everyone can see scores, brackets and schedule.' : 'HIDDEN: the page shows "Opening soon". Scorers still work.';
   b.querySelector('span').textContent = on ? 'Hide scoreboard' : 'Make it live';
   b.classList.toggle('danger', on);
 }

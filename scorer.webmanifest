@@ -1,7 +1,7 @@
 {
   "id": "./scorer.html",
-  "name": "Score Keeper \u00b7 Sportfest 2026",
-  "short_name": "Score Keeper",
+  "name": "Scorer \u00b7 Sportfest 2026",
+  "short_name": "Scorer",
   "description": "Live scoring for Sportfest 2026 games.",
   "start_url": "./scorer.html",
   "scope": "./scorer",

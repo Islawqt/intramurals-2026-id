@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="app-version" content="20261109033023">
+  <meta name="app-version" content="20261109034235">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#140e09">
@@ -27,15 +27,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="manifest" href="admin.webmanifest?v=20261109033023">
+  <link rel="manifest" href="admin.webmanifest?v=20261109034235">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/app/admin-192.png">
   <link rel="apple-touch-icon" href="assets/app/admin-180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="SSC Admin">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="style.css?v=20261109033023">
-  <script src="update.js?v=20261109033023" data-resume></script>
+  <link rel="stylesheet" href="style.css?v=20261109034235">
+  <script src="update.js?v=20261109034235" data-resume></script>
 </head>
 <body class="admin-page">
   <div class="sky" aria-hidden="true"></div>
@@ -77,9 +77,9 @@
       </nav>
       <div class="side-foot">
         <a class="side-link" href="scanner.html">Open scanner</a>
-        <a class="side-link" href="scorer.html">Score Keeper</a>
+        <a class="side-link" href="scorer.html">Scorer</a>
         <a class="side-link" href="scoreboard.html">Public scoreboard</a>
-        <a class="side-link" href="overlay-maker.html" target="_blank" rel="noopener">MLBB overlay maker</a>
+        <a class="side-link" href="overlay-maker.html" target="_blank" rel="noopener">MLBB custom overlay</a>
         <a class="side-link" href="./">Student site</a>
         <button id="lockBtn" class="btn ghost" type="button">Lock admin</button>
       </div>
@@ -198,7 +198,7 @@
         <p id="scanMsg" class="msg" role="status"></p>
         <p class="adm-hint">Up to 2 scanners per team; each only accepts its own team's passes.
           Plus up to 2 <b>SSC all-access</b> scanners (team: All teams) that accept every team and can do <b>early check-outs</b> with a reason.
-          <b>Score keepers:</b> 2 officers per sport. Both keep score on their own phone; a game only counts when both finals match.
+          <b>Scorers:</b> 2 officers per sport. Both keep score on their own phone; a game only counts when both finals match.
           Accounts are also in the Sheet's <b>Scanners</b> tab.</p>
         <div id="teamList" class="team-grid"></div>
       </div>
@@ -239,8 +239,8 @@
 
       <!-- Sports & brackets -->
       <div id="sportsPane" class="pane" hidden>
-        <p class="adm-hint">Score Keepers enter scores in the <a href="scorer.html">Score Keeper app</a>; winners move on in the bracket and the <a href="scoreboard.html" target="_blank" rel="noopener">public scoreboard</a> updates by itself.
-          Assign 2 officers per sport in <b>Scanners</b> (team: Score keepers); a game counts only when both scorers' finals match.
+        <p class="adm-hint">Scorers enter scores in the <a href="scorer.html">Scorer app</a>; winners move on in the bracket and the <a href="scoreboard.html" target="_blank" rel="noopener">public scoreboard</a> updates by itself.
+          Assign 2 officers per sport in <b>Scanners</b> (team: Scorer); a game counts only when both scorers' finals match.
           Set each house's players in <b>Players</b> so scorers can record points and fouls per player.</p>
         <div class="board-sw" id="boardSw">
           <div><b>Public scoreboard</b><small id="boardTxt">Checking…</small></div>
@@ -337,8 +337,8 @@
     </div>
   </template>
 
-  <script src="config.js?v=20261109033023"></script>
-  <script src="admin.js?v=20261109033023"></script>
-  <script src="pwa.js?v=20261109033023"></script>
+  <script src="config.js?v=20261109034235"></script>
+  <script src="admin.js?v=20261109034235"></script>
+  <script src="pwa.js?v=20261109034235"></script>
 </body>
 </html>

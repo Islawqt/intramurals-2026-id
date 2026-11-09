@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-  <meta name="app-version" content="20261109033023"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Overlay Maker · Sportfest 2026</title>
+  <meta name="app-version" content="20261109034235"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custom Overlay · Sportfest 2026</title>
 <meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -43,17 +43,19 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
 .help ol{padding-left:20px}
 </style></head>
 <body>
-<header><small>SPORTFEST 2026 · MOBILE LEGENDS</small><h1>Overlay Maker</h1><p>Pick the matchup, copy the link, paste it into OBS as a Browser Source (1920×1080).</p></header>
+<header><small>SPORTFEST 2026 · MOBILE LEGENDS</small><h1>Custom Overlay</h1><p>Pick the matchup, copy the link, paste it into OBS as a Browser Source (1920×1080).</p></header>
 <main>
   <section class="card">
-    <h2>MATCHUP</h2>
+    <h2>FROM THE SCHEDULE</h2>
+    <label>Pick a game (fills everything below)<select id="pick"><option value="">Loading games…</option></select></label>
+    <h2 style="margin-top:14px">MATCHUP</h2>
     <div class="vs">
       <label>Left team<select id="a"></select></label><b>VS</b>
       <label>Right team<select id="b"></select></label>
     </div>
     <button class="btn ghost" id="swap" type="button">⇄ Swap sides</button>
     <h2 style="margin-top:16px">MATCH DETAILS</h2>
-    <label>Stage<input id="stage" value="Grand Final" maxlength="28"></label>
+    <label>Stage<input id="stage" value="Grand Final" maxlength="32"></label>
     <div class="chips" id="stages"></div>
     <div class="row3">
       <label>Best of<select id="bo"><option>1</option><option>3</option><option selected>5</option></select></label>
@@ -77,7 +79,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
     <div class="link" id="link"></div>
     <p class="msg" id="msg"></p>
     <details><summary>LIVE MODE (no typing during the event)</summary>
-      <p style="margin:8px 0 0;font-size:15px">This link always shows the match being scored right now, and updates by itself from the Score Keeper app:</p>
+      <p style="margin:8px 0 0;font-size:15px">This link always shows the match being scored right now, and updates by itself from the Scorer app:</p>
       <div class="link" id="live"></div>
       <button class="btn ghost" id="copyLive" type="button">Copy live link</button>
     </details>
@@ -95,7 +97,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
     </div>
   </section>
 </main>
-<script src="config.js?v=20261109033023"></script>
+<script src="config.js?v=20261109034235"></script>
 <script>
 const $ = s => document.querySelector(s);
 const HOUSES = Object.keys(CONFIG.HOUSES);                       // full names, e.g. "Phoenix Legion"
@@ -113,6 +115,25 @@ function params() {
   if ($('#al').checked) p.set('align', 1);
   return p;
 }
+// fill from the tournament schedule (teams, stage, best of, series so far)
+let games = [];
+const stageOf = l => String(l).replace(/^Round (\d+) · Game \d+$/, 'Group Stage · Round $1');
+async function loadGames() {
+  try {
+    const r = await (await fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"board"}' })).json();
+    if (!r.ok || r.hidden) throw 0;
+    games = r.matches.filter(m => m.sport === 'mlbb').sort((x, y) => String(x.date + x.time).localeCompare(String(y.date + y.time)));
+    const nm = t => t ? houseName(t).split(' ')[0] : 'TBD';
+    $('#pick').innerHTML = '<option value="">Choose a game…</option>' + games.map((m, i) => `<option value="${i}"${m.a && m.b ? '' : ' disabled'}>${m.status === 'Live' ? '● LIVE · ' : m.status === 'Final' ? '✓ ' : ''}${stageOf(m.label)}: ${nm(m.a)} vs ${nm(m.b)}</option>`).join('');
+  } catch (e) { $('#pick').innerHTML = '<option value="">Schedule not available (type it in below)</option>'; }
+}
+$('#pick').addEventListener('change', () => {
+  const m = games[+$('#pick').value]; if (!m || !m.a || !m.b) return;
+  $('#a').value = houseName(m.a); $('#b').value = houseName(m.b); $('#stage').value = stageOf(m.label);
+  $('#bo').value = m.bestOf; $('#wa').value = m.wa || 0; $('#wb').value = m.wb || 0; $('#game').value = Math.min(m.bestOf, (m.wa || 0) + (m.wb || 0) + 1);
+  $('#msg').style.color = ''; $('#msg').textContent = 'Filled from the schedule.'; upd();
+});
+loadGames();
 let bg = 'ck';
 function upd() {
   if ($('#a').value === $('#b').value) { $('#msg').style.color = '#9b2c2c'; $('#msg').textContent = 'Pick two different houses.'; }
