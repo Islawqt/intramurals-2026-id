@@ -1,0 +1,4 @@
+
+# backend copies never go in the repo
+chk.js
+*.gs
