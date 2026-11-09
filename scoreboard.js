@@ -163,7 +163,7 @@ function renderBrackets() {
   const s = data.sports.find(x => x.id === brSport), ms = data.matches.filter(m => m.sport === s.id);
   $('#brTitle').textContent = s.name.toUpperCase();
   const rr = s.format === 'rrplayoffs';
-  $('#brSub').textContent = `${rr ? 'Round robin + playoffs' : (s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single') + ' elimination'} · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
+  $('#brSub').textContent = rr ? `Round robin + playoffs · Group & play-ins Bo${s.bestOf} · Playoffs Bo${s.playoffBestOf || s.bestOf} · Grand Final Bo${s.finalBestOf} · ${s.venue || ''}` : `${rr ? 'Round robin + playoffs' : (s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single') + ' elimination'} · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
   $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go to the upper bracket. Play-in losers play Last Chance for the 4th upper spot; the rest start in the lower bracket. ↓ = dropped down after a loss.'
     : rr ? 'Stage 1: every house plays every house once (a win = 1 point). #1–#2 go straight to the Upper Bracket Semifinals; #3–#6 play the play-ins (#4 v #5, #3 v #6, losers out). One more loss in the lower bracket and you’re out. Ties: head-to-head, then a decider. ↓ = dropped down after a loss.'
     : s.format === 'double' ? 'UB = upper bracket (no losses yet) · LB = lower bracket (one more loss and you’re out) · ↓ = dropped down from the upper bracket' : (ms.some(m => m.bracket === 'P') ? 'Semifinal losers play for 3rd place.' : '');

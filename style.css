@@ -975,6 +975,7 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .sp-form select,.sp-gen select{width:100%;padding:10px;border:1px solid rgba(90,60,30,.45);border-radius:8px;background:#fdf8ea;font:16px 'EB Garamond',serif;color:var(--ink);margin-top:4px}
 .sp-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .sp-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+.sp-3.sp-fmt{grid-template-columns:2fr repeat(3,1fr);align-items:end}
 .sp-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.sp-6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.sp-6 label{font-size:13px}
 .sp-form .att-chips{margin:-6px 0 12px}
 .sp-form .att-chips.locked{opacity:.6}

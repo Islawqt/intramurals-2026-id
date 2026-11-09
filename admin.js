@@ -985,7 +985,7 @@ function renderSports() {
     d.innerHTML = `<div><b></b> <span class="sp-st"></span><small></small></div><div class="acc-btns"><button type="button" class="btn small ghostish" data-e>Edit</button><button type="button" class="btn small ghostish" data-p>Players</button><button type="button" class="btn small" data-g>Bracket &amp; games</button></div>`;
     d.querySelector('b').textContent = s.name;
     const st = d.querySelector('.sp-st'); st.textContent = live ? 'LIVE' : s.status === 'Done' ? 'DONE' : ms.length ? 'READY' : 'NO BRACKET'; st.className = 'sp-st ' + (live ? 'live' : s.status === 'Done' ? 'done' : ms.length ? 'ready' : '');
-    d.querySelector('small').textContent = `${({ playin: 'Play-ins + double elim', double: 'Double elim', rrplayoffs: 'Round robin + MPL playoffs' })[s.format] || 'Single elim'} · Bo${s.bestOf}${s.finalBestOf !== s.bestOf ? ' (final Bo' + s.finalBestOf + ')' : ''} · ${s.teams.length} teams · ${s.venue || 'no venue'}${ms.length ? ` · ${done} of ${ms.filter(m => m.a || m.b || m.status !== 'Scheduled').length || ms.length} games done` : ''}`;
+    d.querySelector('small').textContent = `${({ playin: 'Play-ins + double elim', double: 'Double elim', rrplayoffs: 'Round robin + MPL playoffs' })[s.format] || 'Single elim'} · Bo${s.bestOf}${s.format === 'rrplayoffs' && s.playoffBestOf !== s.bestOf ? ' · playoffs Bo' + s.playoffBestOf : ''}${s.finalBestOf !== s.bestOf ? ' · final Bo' + s.finalBestOf : ''} · ${s.teams.length} teams · ${s.venue || 'no venue'}${ms.length ? ` · ${done} of ${ms.filter(m => m.a || m.b || m.status !== 'Scheduled').length || ms.length} games done` : ''}`;
     const sc = (cacheGet('scanners') || []).filter(a => a.team === SCORER && a.active && a.sport === s.id).map(a => a.staff);
     d.querySelector('small').textContent += ` · Scorers: ${sc.length ? sc.join(' & ') : 'none yet'}${sc.length === 1 ? ' (needs 2)' : ''}`;
     d.querySelector('[data-e]').addEventListener('click', () => openSportForm(s));
@@ -1004,7 +1004,7 @@ function openSportForm(s) {
   const f = $('#spForm'); f.hidden = false;
   $('#spFormTitle').textContent = s ? 'Edit ' + s.name : 'New sport';
   $('#spName').value = s ? s.name : ''; $('#spVenue').value = s ? s.venue : ''; $('#spStream').value = s ? s.stream || '' : '';
-  $('#spFormat').value = s ? s.format : 'single'; $('#spBo').value = s ? s.bestOf : 1; $('#spFbo').value = s ? s.finalBestOf : 1;
+  $('#spFormat').value = s ? s.format : 'single'; $('#spBo').value = s ? s.bestOf : 1; $('#spFbo').value = s ? s.finalBestOf : 1; $('#spPbo').value = s ? s.playoffBestOf || s.bestOf : 3; pboShow();
   $('#spType').value = s ? s.scoreType : 'rally';
   $('#spPreset').value = s ? guessPreset(s) : 'custom';
   const r = (s && s.rules) || {};
@@ -1026,7 +1026,7 @@ const PRESETS = {
   volleyball:  { type: 'rally', t: 25, d: 15, c: 0, bo: 3, fbo: 3, note: 'FIVB: every rally is a point. Set to 25, win by 2; deciding set to 15, win by 2.' },
   badminton:   { type: 'rally', t: 21, d: 21, c: 30, bo: 3, fbo: 3, note: 'BWF: every rally is a point. Game to 21, win by 2; at 29-all the next point wins (30). Best of 3.' },
   pickleball:  { type: 'pickleball', t: 11, d: 11, c: 0, bo: 3, fbo: 3, mode: 'doubles', note: 'Only the serving side scores. Game to 11, win by 2. Doubles score is called serving-receiving-server (start 0-0-2).' },
-  mlbb:        { type: 'games', bo: 1, fbo: 5, note: 'Tap who won each game.' },
+  mlbb:        { type: 'games', bo: 1, pbo: 3, fbo: 5, note: 'Group stage and play-ins Bo1 · playoffs Bo3 · Grand Final Bo5. Tap who won each game.' },
   tabletennis: { type: 'rally', t: 11, d: 11, c: 0, bo: 5, fbo: 5, note: 'Every rally is a point. Game to 11, win by 2. Check your league for the number of games.' },
   sepak:       { type: 'rally', t: 21, d: 21, c: 0, bo: 3, fbo: 3, note: 'Every rally is a point. Check your league for the set length and any cap.' },
   chess:       { type: 'games', bo: 1, fbo: 3, note: 'Tap who won each game.' },
@@ -1045,10 +1045,18 @@ function applyPreset() {
   $('#spType').value = P.type;
   if (P.t) { $('#spTarget').value = P.t; $('#spDeciding').value = P.d; $('#spCap').value = P.c; }
   if (P.mode) $('#spMode').value = P.mode;
-  $('#spBo').value = P.bo; $('#spFbo').value = P.fbo;
+  $('#spBo').value = P.bo; $('#spFbo').value = P.fbo; if (P.pbo) $('#spPbo').value = P.pbo;
   if (!$('#spName').value.trim() || Object.keys(PRESETS).some(k => $('#spName').value === ($('#spPreset').querySelector(`option[value="${k}"]`) || {}).textContent)) $('#spName').value = ({ basketball: 'Basketball', volleyball: 'Volleyball', badminton: 'Badminton', pickleball: 'Pickleball', mlbb: 'Mobile Legends', tabletennis: 'Table Tennis', sepak: 'Sepak Takraw', chess: 'Chess' })[$('#spPreset').value] || $('#spName').value;
   showRules();
 }
+// round robin + playoffs: three best-of settings (group + play-ins / playoffs / grand final)
+function pboShow() {
+  const rr = $('#spFormat').value === 'rrplayoffs';
+  $('#spPboWrap').style.display = rr ? '' : 'none';
+  $('#spBo').parentNode.firstChild.textContent = rr ? 'Group + play-ins best of' : 'Best of';
+  $('#spFbo').parentNode.firstChild.textContent = rr ? 'Grand Final best of' : 'Final best of';
+}
+$('#spFormat').addEventListener('change', pboShow);
 function showRules() {
   const t = $('#spType').value, P = PRESETS[$('#spPreset').value] || {};
   $('#spRules').style.display = t === 'rally' || t === 'pickleball' ? '' : 'none';
@@ -1065,7 +1073,7 @@ $('#spForm').addEventListener('submit', async e => {
   const teams = [...$('#spTeams').querySelectorAll('input:checked')].map(i => i.value);
   try {
     const r = await api({ action: 'adminSportSave', sport: { id: spEdit && spEdit.id, name: $('#spName').value, venue: $('#spVenue').value, format: $('#spFormat').value,
-      bestOf: +$('#spBo').value, finalBestOf: +$('#spFbo').value, scoreType: $('#spType').value, teams, third: $('#spThird').checked, stream: $('#spStream').value.trim(),
+      bestOf: +$('#spBo').value, finalBestOf: +$('#spFbo').value, playoffBestOf: +$('#spPbo').value, scoreType: $('#spType').value, teams, third: $('#spThird').checked, stream: $('#spStream').value.trim(),
       rules: { target: +$('#spTarget').value || 0, deciding: +$('#spDeciding').value || 0, cap: +$('#spCap').value || 0, mode: $('#spMode').value },
       points: [1, 2, 3, 4, 5, 6].map(i => +$('#spP' + i).value || 0) } });
     if (!r.ok) { setMsg($('#spMsg'), r.error, 'error'); return; }

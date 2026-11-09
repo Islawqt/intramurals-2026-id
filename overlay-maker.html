@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-  <meta name="app-version" content="20261109054911"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="app-version" content="20261109071539"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Custom Overlay · Sportfest 2026</title>
 <meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
@@ -106,7 +106,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
     </div>
   </section>
 </main>
-<script src="config.js?v=20261109054911"></script>
+<script src="config.js?v=20261109071539"></script>
 <script>
 const $ = s => document.querySelector(s);
 const HOUSES = Object.keys(CONFIG.HOUSES);                       // full names, e.g. "Phoenix Legion"
@@ -114,7 +114,7 @@ const STAGES = ['Group Stage · Round 1', 'Group Stage · Round 2', 'Group Stage
 const fill = (sel, v) => { sel.innerHTML = HOUSES.map(h => `<option value="${h}">${h}</option>`).join(''); sel.value = v; };
 fill($('#a'), 'Phoenix Legion'); fill($('#b'), 'Gryffindor Titans');
 $('#stages').innerHTML = STAGES.map(s => `<button type="button">${s}</button>`).join('');
-$('#stages').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('#stage').value = b.textContent; if (/Grand Final/.test(b.textContent)) $('#bo').value = 5; else if ($('#bo').value === '5') $('#bo').value = 1; upd(); }));
+$('#stages').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('#stage').value = b.textContent; $('#bo').value = /Grand Final/.test(b.textContent) ? 5 : /^(UB|LB) /.test(b.textContent) ? 3 : 1; upd(); }));
 let scr = 'game';
 const BASES = { game: new URL('overlay.html', location.href).href, wait: new URL('scene.html', location.href).href, pause: new URL('scene.html', location.href).href };
 let base = BASES.game;
