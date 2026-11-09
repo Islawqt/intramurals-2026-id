@@ -14,7 +14,7 @@ function match(v) {
 }
 function row(role, p, sub) {
   const d = document.createElement('div'); d.className = 'rg-row' + (sub ? ' sub' : ''); d.dataset.role = role;
-  d.innerHTML = `<div class="rg-role"><b>${esc(sub ? '6th Man' : role)}</b></div>
+  d.innerHTML = `<div class="rg-role"><b>${esc(sub ? '6th Man' : role)}</b><label class="rg-cap"><input type="radio" name="cap"${p.captain ? ' checked' : ''}><span>Captain</span></label></div>
     <input class="rg-name" list="names" placeholder="${sub ? 'Player name (optional)' : 'Player name'}" aria-label="${esc(role)} player" value="${esc(p.name || '')}">
     <input class="rg-ign" maxlength="24" placeholder="In-game name (IGN)" aria-label="${esc(role)} in-game name" value="${esc(p.ign || '')}">`;
   const nm = d.querySelector('.rg-name');
@@ -30,7 +30,7 @@ function check() {
 function rosterHTML(list) {
   const order = D.roles.concat(D.sub);
   return `<ol class="rg-list">${list.slice().sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role)).map(p =>
-    `<li><span><b>${esc(p.name)}</b><small>${esc(p.role)}${p.ign ? ' · IGN: ' + esc(p.ign) : ''}</small></span></li>`).join('')}</ol>`;
+    `<li><span><b>${esc(p.name)}${p.captain ? ' <em class="rg-c">Captain</em>' : ''}</b><small>${esc(p.role)}${p.ign ? ' · IGN: ' + esc(p.ign) : ''}</small></span></li>`).join('')}</ol>`;
 }
 function paintSaved() {
   const s = $('#saved');
@@ -71,12 +71,14 @@ $('#form').addEventListener('submit', async e => {
   for (const r of document.querySelectorAll('.rg-row')) {
     const role = r.dataset.role, sub = r.classList.contains('sub'), nm = r.querySelector('.rg-name'), ign = r.querySelector('.rg-ign');
     const m = match(nm.value);
-    if (!nm.value.trim() && sub) { players.push({ name: '', role, ign: '' }); continue; }
+    const cap = r.querySelector('.rg-cap input').checked;
+    if (!nm.value.trim() && sub) { if (cap) { r.classList.add('bad'); return say('The captain must be one of the players. Pick a 6th man or another captain.', 'error'); } players.push({ name: '', role, ign: '' }); continue; }
     if (!m) { r.classList.add('bad'); nm.focus(); return say(nm.value.trim() ? `"${nm.value.trim()}" is not on your house list. Pick a name from the suggestions.` : `Pick a player for ${role}.`, 'error'); }
     nm.value = m;
     if (!ign.value.trim()) { r.classList.add('bad'); ign.focus(); return say(`Type the in-game name (IGN) of ${m}.`, 'error'); }
-    players.push({ name: m, role, ign: ign.value.trim() });
+    players.push({ name: m, role, ign: ign.value.trim(), captain: cap });
   }
+  if (!players.some(p => p.captain)) return say('Pick the team captain: tap "Captain" beside one player.', 'error');
   check(); if (document.querySelector('.rg-row.dup')) return say('A player is listed twice. One role per player.', 'error');
   const by = match($('#by').value); if (!by) { $('#by').focus(); return say('Pick your own name under "Submitted by".', 'error'); }
   $('#by').value = by;

@@ -936,7 +936,7 @@ function paintReg() {
       <div class="reg-top"><img src="${(houseStyle(houseName(t.team)).emblem || '').replace('assets/crests/', 'assets/crests/sm/')}" alt=""><b>${esc(houseName(t.team))}</b>
         <span class="sp-st ${t.players.length >= 5 ? 'done' : ''}">${t.players.length >= 5 ? (t.players.length === 6 ? '5 + SUB' : '5 PLAYERS') : 'NOT YET'}</span></div>
       <div class="reg-link"><input readonly value="${esc(regURL(t.key))}" aria-label="${esc(houseName(t.team))} link"><button type="button" class="btn small" data-copy="${esc(t.team)}">Copy</button></div>
-      ${t.players.length ? `<ol class="reg-pl">${t.players.slice().sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role)).map(p => `<li><small>${esc(p.role || '—')}</small><b>${esc(p.name)}</b>${p.ign ? `<i>${esc(p.ign)}</i>` : ''}</li>`).join('')}</ol>
+      ${t.players.length ? `<ol class="reg-pl">${t.players.slice().sort((a, b) => order.indexOf(a.role) - order.indexOf(b.role)).map(p => `<li><small>${esc(p.role || '—')}</small><b>${esc(p.name)}${p.captain ? ' (C)' : ''}</b>${p.ign ? `<i>${esc(p.ign)}</i>` : ''}</li>`).join('')}</ol>
         <p class="adm-hint">By ${esc(t.by || '—')} · ${esc(t.updated || '')}</p>` : ''}
       <button type="button" class="btn small ghostish" data-new="${esc(t.team)}">New link (old one stops working)</button></div>`).join('');
   $('#regList').querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
