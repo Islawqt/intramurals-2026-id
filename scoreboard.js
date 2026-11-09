@@ -88,6 +88,7 @@ function renderOverview() {
   const live = M.filter(m => m.status === 'Live');
   const next = M.filter(m => m.status === 'Scheduled' && playable(m)).sort(sortTime).slice(0, 3);
   $('#liveHead').textContent = live.length ? 'Live now' : 'Up next';
+  $('#liveNote').hidden = !live.length;
   $('#liveList').innerHTML = (live.length ? live : next).map(m => matchCard(m, !!live.length)).join('') || '<p class="sb-empty">No games scheduled yet.</p>';
   live.forEach(m => {                                                 // pop the number that just changed
     ['a', 'b'].forEach(s => { const k = m.id + s, v = s === 'a' ? m.sa : m.sb, el = document.getElementById('s-' + k);
@@ -235,7 +236,8 @@ function renderSchedule() {
   const days = {};
   ms.forEach(m => { (days[m.date || ''] = days[m.date || ''] || []).push(m); });
   const order = Object.keys(days).sort((a, b) => (a || 'z').localeCompare(b || 'z')); if (ended) order.reverse();
-  $('#sched').innerHTML = order.map(d => `<div class="sc-day"><h4>${esc(fdate(d))}</h4>${days[d].map(m => {
+  const note = all.some(is.live) && (scWhen === 'all' || scWhen === 'live') ? '<p class="sb-delay">Live scores may be a few seconds behind the actual game.</p>' : '';
+  $('#sched').innerHTML = note + order.map(d => `<div class="sc-day"><h4>${esc(fdate(d))}</h4>${days[d].map(m => {
     const st = m.status === 'Final' ? `<span class="sc-st f">Final · ${scoreLine(m)}</span>` : m.status === 'Live' ? `<span class="sc-st l">● Live · ${m.bestOf > 1 ? m.wa + '–' + m.wb : m.sa + '–' + m.sb}</span>` : `<span class="sc-st">Upcoming</span>`;
     const tm = t => t ? `<b class="${m.status === 'Final' ? (m.winner === t ? 'w' : 'l') : ''}">${short(t)}</b>` : '<b>TBD</b>';
     const btn = watchBtn(m);

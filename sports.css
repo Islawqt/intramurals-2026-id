@@ -291,4 +291,4 @@ body.demo::after{content:'SAMPLE DATA';position:fixed;top:14px;right:-38px;z-ind
 .sb-wb{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;background:#1877f2;color:#fff;font:700 12px Cinzel,serif;letter-spacing:.06em;text-decoration:none;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 .sb-wb:hover{filter:brightness(1.12)}
 .sb-match .sb-wb{margin:8px auto 0;display:flex;width:max-content;font-size:13px;padding:7px 16px}
-@media (prefers-reduced-motion: reduce){
+.sb-pane p.sb-delay{margin:-4px auto 10px;text-align:center;font:italic 14px 'IM Fell English',serif;color:#cbb88f}
