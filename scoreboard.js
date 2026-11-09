@@ -147,7 +147,7 @@ function renderBrackets() {
   const s = data.sports.find(x => x.id === brSport), ms = data.matches.filter(m => m.sport === s.id);
   $('#brTitle').textContent = s.name.toUpperCase();
   $('#brSub').textContent = `${s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single'} elimination · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
-  $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go up to the upper bracket; losers start in the lower bracket. ↓ = dropped down after a loss. Two losses and you’re out.'
+  $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go to the upper bracket. Play-in losers play Last Chance for the 4th upper spot; the rest start in the lower bracket. ↓ = dropped down after a loss.'
     : s.format === 'double' ? 'UB = upper bracket (no losses yet) · LB = lower bracket (one more loss and you’re out) · ↓ = dropped down from the upper bracket' : (ms.some(m => m.bracket === 'P') ? 'Semifinal losers play for 3rd place.' : '');
   if (!ms.length) { $('#brCanvas').innerHTML = '<p class="sb-empty">The bracket for this sport is not out yet.</p>'; $('#brSize').style.width = ''; $('#brSize').style.height = '80px'; $('#brCanvas').style.transform = ''; return; }
   drawBracket(s, ms);
@@ -155,7 +155,7 @@ function renderBrackets() {
 const BW = 220, CW = 270, SP = 108, CAP = 18, ROW = 36;
 function drawBracket(s, ms) {
   const pos = {}, by = id => ms.find(m => m.id === id), tgt = w => String(w || '').split(':')[0];
-  let top = 26, maxX = 0, html = '';
+  let top = 44, maxX = 0, html = '';
   const place = (list, y0) => {
     const rounds = [...new Set(list.map(m => m.round))].sort((a, b) => a - b);
     let maxY = y0;
@@ -174,15 +174,20 @@ function drawBracket(s, ms) {
     return maxY;
   };
   const U = ms.filter(m => m.bracket === 'U'), L = ms.filter(m => m.bracket === 'L');
-  const dbl = L.length > 0, pin = U.some(m => /^Play-in/.test(m.label));
-  if (pin) html += `<div class="br-sec" style="left:0;top:0">PLAY-INS</div><div class="br-sec" style="left:${CW}px;top:0">UPPER BRACKET</div>`;
-  else if (dbl) html += `<div class="br-sec" style="left:0;top:0">UPPER BRACKET</div>`;
-  let uMax = place(U, top);
-  if (dbl) {
-    const lTop = uMax + SP + 30, lx = Math.min(...L.map(m => m.round)) * CW;
-    html += `<div class="br-sec lb" style="left:${lx}px;top:${lTop - 26}px">LOWER BRACKET</div>`;
-    place(L, lTop);
-  }
+  const dbl = L.length > 0;
+  // round headers above each column, like "Play-ins · Upper Bracket Semifinal · Upper Bracket Final · Grand Final"
+  const longName = l => String(l).replace(/ · Match \d+$/, '').replace(/^Play-in \d+$/, 'Play-ins').replace(/^(UB |)(Quarterfinal|Semifinal) \d+$/, '$1$2s').replace(/^Round (\d+) \d+$/, 'Round $1')
+    .replace(/^UB /, 'Upper Bracket ').replace(/^LB /, 'Lower Bracket ');
+  const heads = (list, y) => [...new Set(list.map(m => m.round))].forEach(r => { const col = list.filter(m => m.round === r);
+    const names = [...new Set(col.map(m => longName(m.label)))].filter(n => n !== '3rd Place');
+    if (names.length) html += `<div class="br-rh" style="left:${r * CW}px;top:${y}px">${esc(names.join(' / '))}</div>`; });
+  // Last Chance games (play-in losers fighting for the 4th upper spot) get their own row under the play-ins
+  const Q = U.filter(m => /^Last Chance/.test(m.label)), UU = U.filter(m => Q.indexOf(m) === -1);
+  let uMax = place(UU, top);
+  heads(UU.concat(ms.filter(m => m.bracket === 'G')), top - 40);
+  if (Q.length) { const qTop = uMax + SP + 52; uMax = place(Q, qTop); heads(Q, qTop - 40); }
+  let lTop = 0;
+  if (dbl) { lTop = uMax + SP + 52; place(L, lTop); heads(L, lTop - 40); }
   // where each slot comes from: "Winner of Play-in 1" / "Loser of UB Semifinal"
   const src = {};
   ms.forEach(m => [['winTo', 'Winner'], ['loseTo', 'Loser']].forEach(([k, w]) => { const v = String(m[k] || ''); if (v) src[v] = { w, label: m.label }; }));
@@ -199,10 +204,10 @@ function drawBracket(s, ms) {
     const done = m.status === 'Final', live = m.status === 'Live';
     const val = side => { if (!m[side]) return ''; if (live) return m.bestOf > 1 ? (side === 'a' ? m.wa : m.wb) : (side === 'a' ? m.sa : m.sb);
       if (!done) return ''; if (m.bestOf > 1) return side === 'a' ? m.wa : m.wb; const g = String(m.games).split(',').pop().split('-'); return g.length === 2 ? g[side === 'a' ? 0 : 1] : (m.winner === m[side] ? 'W' : 'L'); };
-    const row = side => { const t = m[side], from = src[m.id + ':' + side.toUpperCase()], drop = from && from.w === 'Loser';
+    const row = side => { const t = m[side], from = src[m.id + ':' + side.toUpperCase()], drop = from && from.w === 'Loser' && m.bracket === 'L';
       const cls = !t ? 'tbd' : done ? (m.winner === t ? 'w' : 'l') : live ? 'live' : '';
       return t ? `<div class="br-t ${cls}${drop ? ' drop' : ''}" style="--c:${color(t)}"${drop ? ` title="Dropped from ${esc(from.label)}"` : ''}><i></i><img src="${crest(t)}" alt=""><span>${drop ? '<u>↓</u>' : ''}${esc(houseName(t))}</span><b>${val(side)}</b></div>`
-        : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>${from ? `${from.w} of ${esc(from.label)}` : 'TBD'}</span><b></b></div>`; };
+        : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>${from ? `${from.w} of ${esc(from.label.replace(' · Match ', ' #'))}` : 'TBD'}</span><b></b></div>`; };
     const cap = `${m.date ? fdate(m.date).replace(/^\w+, /, '') + ' · ' : ''}${f12(m.time) ? f12(m.time) + ' · ' : ''}<b>${esc(m.label)}</b>${m.bestOf > 1 ? ' · Bo' + m.bestOf : ''}${live ? ' · <span class="lv">● LIVE</span>' : ''}`;
     html += `<div class="br-m${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}" style="left:${p.x}px;top:${p.y}px"><div class="br-cap">${cap}</div>${row('a')}${row('b')}</div>`;
   });
@@ -212,7 +217,7 @@ function drawBracket(s, ms) {
   let d = '';
   ms.forEach(m => { const t = tgt(m.winTo); if (!t || !pos[t] || !pos[m.id]) return;
     const a = pos[m.id], b = pos[t], side = String(m.winTo).split(':')[1];
-    const x1 = a.x + BW, y1 = a.y + CAP + ROW, x2 = b.x, y2 = b.y + CAP + (side === 'B' ? ROW * 1.5 : ROW * .5), mx = x1 + (x2 - x1) / 2;
+    const x1 = a.x + BW, y1 = a.y + CAP + ROW, x2 = b.x, y2 = b.y + CAP + (side === 'B' ? ROW * 1.5 : ROW * .5), mx = x2 - x1 >= CW ? x2 - 12 : x1 + (x2 - x1) / 2;   // long lines turn right at the target, short ones halfway, so they never overlap
     d += `M${x1},${y1} H${mx} V${y2} H${x2} `; });
   d += `M${fp.x + BW},${fp.y + CAP + ROW} H${fp.x + CW}`;
   const W = maxX + CW + BW + 28, H = maxY + CAP + ROW * 2 + 40;

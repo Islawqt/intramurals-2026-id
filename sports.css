@@ -218,3 +218,8 @@ body.demo::after{content:'SAMPLE DATA';position:fixed;top:14px;right:-38px;z-ind
 
 .br-t.drop span u{text-decoration:none;margin-right:5px;color:#e08a5a;font:700 13px sans-serif}
 .br-t.tbd span{font-size:13px}
+
+.br-rh{position:absolute;width:220px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(201,162,74,.35);border-radius:6px;
+  background:linear-gradient(180deg,rgba(201,162,74,.22),rgba(201,162,74,.08));font:700 12.5px Cinzel,serif;letter-spacing:.06em;color:#f1d27a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.br-bye .br-t{border-style:dashed;opacity:.85}
+.br-bye .br-cap b{color:#c9a24a}
