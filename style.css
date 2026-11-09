@@ -1036,3 +1036,6 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .reg-link{display:flex;gap:6px;margin-bottom:8px}.reg-link input{flex:1;min-width:0;margin:0;padding:8px;font:12px monospace}
 .reg-pl{list-style:none;margin:0 0 4px;padding:0}.reg-pl li{display:grid;grid-template-columns:84px 1fr auto;gap:6px;padding:3px 0;border-bottom:1px solid rgba(90,60,30,.15);font-size:15px}
 .reg-pl small{font:700 11px Cinzel,serif;color:#5a4630;align-self:center}.reg-pl i{color:#5a4630;font-size:14px}
+/* admin: long lists only draw the rows on screen; the starry sky stays on its own layer */
+.att-row,.g-row{content-visibility:auto;contain-intrinsic-size:auto 58px}
+.sky{will-change:transform;contain:strict}

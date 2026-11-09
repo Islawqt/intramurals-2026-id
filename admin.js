@@ -564,8 +564,12 @@ setInterval(tickClock, 1000);
 
 // ---------- overview ----------
 let statsTimer = 0;
+let statsSig = '';
 function renderStats(r) {
   if (!r || !Array.isArray(r.teams)) return;
+  const sig = JSON.stringify([r.teams, r.reportsNew, r.sscScanners]);
+  if (sig === statsSig && $('#teamRows').children.length) { if (r.now) { serverNow = r.now; if (!schedDirty && r.schedule) sched = r.schedule; updateNow(); } return; }
+  statsSig = sig;
   const sum = k => r.teams.reduce((a, t) => a + t[k], 0);
   $('#stPasses').textContent = `${sum('passes')} / ${sum('members')}`;
   $('#stIn').textContent = sum('in');
@@ -609,7 +613,8 @@ async function loadStats() {
   try {
     const r = await api({ action: 'adminStats' });
     if (!r.ok || !Array.isArray(r.teams)) return;
-    cacheSet('stats', r);
+    const changed = JSON.stringify([r.teams, r.reportsNew, r.sscScanners]) !== statsSig;
+    if (changed) cacheSet('stats', r);
     renderStats(r);
     statsLast = Date.now();
   } catch (e) {} finally { statsBusy = false; }
@@ -719,6 +724,7 @@ function renderAtt() {
   list.appendChild(frag);
   $('#attCsv').disabled = !shown.length;
 }
+let attSig = '';
 async function loadAtt(quiet) {
   if (attBusy) return;
   if (!$('#attDate').value) {
@@ -735,7 +741,10 @@ async function loadAtt(quiet) {
     const r = await api({ action: 'adminAttendance', date, team });
     if (!r.ok) { setMsg($('#attMsg'), r.error, 'error'); return; }
     if (r.date !== $('#attDate').value && $('#attDate').value) { /* changed while loading */ }
-    attData = r; attLast = Date.now();
+    attLast = Date.now();
+    const sig = JSON.stringify(r.items) + r.date + r.team;
+    if (quiet && sig === attSig) return;                       // live refresh with no new scans: keep the list as it is
+    attSig = sig; attData = r;
     attDays(r);
     setMsg($('#attMsg'), '');
     renderAtt();
@@ -745,7 +754,7 @@ async function loadAtt(quiet) {
 }
 $('#attDate').addEventListener('change', () => loadAtt());
 $('#attTeam').addEventListener('change', () => loadAtt());
-$('#attSearch').addEventListener('input', renderAtt);
+let attT = 0; $('#attSearch').addEventListener('input', () => { clearTimeout(attT); attT = setTimeout(renderAtt, 150); });
 document.querySelectorAll('.att-chips .chip-btn').forEach(c => c.addEventListener('click', () => { attFilter = c.dataset.f; renderAtt(); }));
 setInterval(() => {   // live while looking at today
   if (current !== 'att' || !attData || !attData.now || attData.date !== attData.now.date || document.visibilityState !== 'visible') return;
@@ -863,13 +872,17 @@ async function open() {
   let saved = null;
   try { saved = sessionStorage.getItem('im26_admin_role'); } catch {}
   applyRole(saved || 'full');
-  try {
-    const w = await api({ action: 'adminWhoAmI' });
-    if (w.ok) { applyRole(w.role, w.scheduleKeySet); if (w.role === 'full') showSetup(w); try { sessionStorage.setItem('im26_admin_role', w.role); } catch {} }
-  } catch (e) { if (e.message === 'unauthorized') return; }
   let last = 'dash';
   try { last = localStorage.getItem('im26_admin_sec') || 'dash'; } catch {}
-  go(last);
+  // the role is checked in the background (one less wait when the page opens); a different role re-opens the right section
+  const who = api({ action: 'adminWhoAmI' }).then(w => {
+    if (!w.ok) return;
+    const changed = w.role !== (saved || 'full');
+    applyRole(w.role, w.scheduleKeySet); if (w.role === 'full') showSetup(w); try { sessionStorage.setItem('im26_admin_role', w.role); } catch {}
+    if (changed) go(last);
+  }).catch(() => {});
+  await null;                                                 // let the rest of admin.js finish loading first
+  if (saved) go(last); else { await who; if (!key) return; go(last); }
   if (current !== 'sched') loadSchedule().catch(() => {});   // the status pill needs the schedule
 }
 
@@ -892,12 +905,18 @@ if (key) open(); else show('keyScreen');
 let SP = { sports: [], matches: [] }, spEdit = null, spOpen = null, spPl = null;
 const shortT = t => t ? houseName(t).split(' ')[0] : 'TBD';
 const typeName = { basketball: 'Basketball scoring', rally: 'Rally points', points: 'Rally points', pickleball: 'Pickleball', games: 'Win / loss per game' };
+let spSig = '';
 async function loadSports(keep) {
+  if (!SP.sports.length) { const c = cacheGet('sports'); if (c && c.sports) { SP = c; renderSports(); paintBoardSw(); } }
   if (!keep) setMsg($('#spMsg'), SP.sports.length ? '' : 'Loading…');
   try {
     const r = await api({ action: 'adminSports' });
     if (!r.ok) return setMsg($('#spMsg'), r.error, 'error');
-    SP = r; if (!keep) setMsg($('#spMsg'), ''); renderSports(); paintBoardSw(); if (spOpen) renderGames(); if ($('#regBox').open) loadReg();
+    const sig = JSON.stringify([r.sports, r.matches, r.groups, r.boardLive]);
+    if (!keep) setMsg($('#spMsg'), '');
+    if (sig === spSig) return;                                 // nothing new: leave the page as it is (no flicker, no lost scroll)
+    spSig = sig; SP = r; cacheSet('sports', r);
+    renderSports(); paintBoardSw(); if (spOpen) renderGames(); if ($('#regBox').open && keep) loadReg();
   } catch (e) { if (e.message !== 'unauthorized') setMsg($('#spMsg'), 'Could not load. Check your internet.', 'error'); }
 }
 // public scoreboard on/off
