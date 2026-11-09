@@ -106,7 +106,7 @@ h1 {
 .panel::before {
   content: ''; position: absolute; inset: 5px; z-index: -1; pointer-events: none;
   border: 54px solid transparent;
-  border-image: url('assets/intro/frame.webp') 262 / 54px stretch;
+  border-image: url('assets/intro/frame-sm.webp') 105 / 54px stretch;
   opacity: .9;
 }
 .panel.themed { border-top: 5px solid var(--house); }

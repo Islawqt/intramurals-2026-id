@@ -2,7 +2,7 @@
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const short = t => t ? houseName(t).split(' ')[0] : '';
-const crest = t => houseStyle(t).emblem || 'assets/og/crest-192.png';
+const crest = t => (houseStyle(t).emblem || 'assets/og/crest-192.png').replace('assets/crests/', 'assets/crests/sm/');
 const color = t => t ? houseStyle(t).primary : '#4a3a28';
 const f12 = t => { if (!t) return ''; const [h, m] = String(t).split(':').map(Number); return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
 const fdate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Date to follow';
@@ -32,18 +32,25 @@ async function load() {
     const r = await res.json();
     if (!r.ok) throw new Error(r.error);
     lastOk = Date.now();
+    apply(r, false);
+    if (!DEMO) try { localStorage.setItem(KEY, JSON.stringify(r)); } catch (e) {}
+  } catch (e) {
+    $('#dot').className = 'sb-dot off';
+    $('#liveTxt').textContent = data ? 'Reconnecting… showing the last scores' : 'Could not load. Check your internet.';
+  } finally { busy = false; }
+}
+// last scores saved on this phone: the page shows them at once, then the live data replaces them
+const KEY = 'sb_board_v1';
+function apply(r, cached) {
     const closed = !!r.hidden;
     $('#closed').hidden = !closed; document.querySelector('.sb-tabs').hidden = closed;
     document.querySelectorAll('.sb-pane').forEach(p => { p.hidden = closed || p.id !== tab; });
     if (closed) { data = null; $('#dot').className = 'sb-dot off'; $('#liveTxt').textContent = 'Not live yet'; return; }
     data = r;
     $('#dot').className = 'sb-dot';
-    $('#liveTxt').textContent = DEMO ? 'SAMPLE DATA · not real results' : `Live · updates every 15 seconds · ${f12(r.now.time.slice(0, 5))}`;
+    $('#liveTxt').textContent = DEMO ? 'SAMPLE DATA · not real results' : cached ? 'Updating…' : `Live · updates every 15 seconds · ${f12(r.now.time.slice(0, 5))}`;
+    if (cached) $('#dot').className = 'sb-dot off';
     render();
-  } catch (e) {
-    $('#dot').className = 'sb-dot off';
-    $('#liveTxt').textContent = data ? 'Reconnecting… showing the last scores' : 'Could not load. Check your internet.';
-  } finally { busy = false; }
 }
 setInterval(load, 15000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && Date.now() - lastOk > 10000) load(); });
@@ -147,7 +154,7 @@ function renderBrackets() {
   const s = data.sports.find(x => x.id === brSport), ms = data.matches.filter(m => m.sport === s.id);
   $('#brTitle').textContent = s.name.toUpperCase();
   const rr = s.format === 'rrplayoffs';
-  $('#brSub').textContent = `${rr ? 'Round robin + MPL playoffs' : (s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single') + ' elimination'} · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
+  $('#brSub').textContent = `${rr ? 'Round robin + playoffs' : (s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single') + ' elimination'} · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
   $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go to the upper bracket. Play-in losers play Last Chance for the 4th upper spot; the rest start in the lower bracket. ↓ = dropped down after a loss.'
     : rr ? 'Stage 1: every house plays every house once (a win = 1 point). #1–#2 go straight to the Upper Bracket Semifinals; #3–#6 play the play-ins (#4 v #5, #3 v #6, losers out). One more loss in the lower bracket and you’re out. Ties: head-to-head, then a decider. ↓ = dropped down after a loss.'
     : s.format === 'double' ? 'UB = upper bracket (no losses yet) · LB = lower bracket (one more loss and you’re out) · ↓ = dropped down from the upper bracket' : (ms.some(m => m.bracket === 'P') ? 'Semifinal losers play for 3rd place.' : '');
@@ -284,4 +291,5 @@ function renderSchedule() {
 }
 
 showTab(['ov', 'br', 'sc'].includes(tab) ? tab : 'ov');
+if (!DEMO) try { const c = JSON.parse(localStorage.getItem(KEY) || 'null'); if (c && c.ok) apply(c, true); } catch (e) {}
 load();

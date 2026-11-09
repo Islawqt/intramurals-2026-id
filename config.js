@@ -8,7 +8,7 @@ const CONFIG = {
 
   // Official logos. Upload the real files to these paths (PNG with transparent
   // or white background). Missing files are simply skipped.
-  LOGOS: { sti: 'assets/logos/sti.png', ssc: 'assets/logos/ssc.webp' },
+  LOGOS: { sti: 'assets/logos/sti.webp', ssc: 'assets/logos/ssc.webp' },
 
   // Back of the ID: heading + rules (edit freely)
   BACK_TITLE: 'REMINDERS',

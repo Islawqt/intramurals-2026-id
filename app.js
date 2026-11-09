@@ -90,7 +90,7 @@ function cropToPhoto(src, sw, sh) {
     chip.style.setProperty('--i', i);
     row.appendChild(chip);
     if (!h.emblem) return;
-    crestURL(h.emblem).then(url => {
+    crestURL(h.emblem.replace('assets/crests/', 'assets/crests/sm/')).then(url => {
       const img = new Image();
       img.src = url;
       img.alt = '';

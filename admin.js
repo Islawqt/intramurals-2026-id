@@ -285,7 +285,7 @@ const sportName = id => (SP.sports.find(s => s.id === id) || {}).name || (id ? i
 
 function crestImg(team) {
   const img = document.createElement('img');
-  const e = team === SCORER ? 'assets/app/scanner-192.png' : team === ALL_TEAMS ? CONFIG.LOGOS.ssc : houseStyle(houseName(team)).emblem;
+  const e = team === SCORER ? 'assets/app/scanner-192.png' : team === ALL_TEAMS ? CONFIG.LOGOS.ssc : (houseStyle(houseName(team)).emblem || '').replace('assets/crests/', 'assets/crests/sm/');
   if (e) img.src = e;
   img.alt = '';
   return img;
