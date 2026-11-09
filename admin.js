@@ -925,7 +925,7 @@ function renderSports() {
     d.innerHTML = `<div><b></b> <span class="sp-st"></span><small></small></div><div class="acc-btns"><button type="button" class="btn small ghostish" data-e>Edit</button><button type="button" class="btn small ghostish" data-p>Players</button><button type="button" class="btn small" data-g>Bracket &amp; games</button></div>`;
     d.querySelector('b').textContent = s.name;
     const st = d.querySelector('.sp-st'); st.textContent = live ? 'LIVE' : s.status === 'Done' ? 'DONE' : ms.length ? 'READY' : 'NO BRACKET'; st.className = 'sp-st ' + (live ? 'live' : s.status === 'Done' ? 'done' : ms.length ? 'ready' : '');
-    d.querySelector('small').textContent = `${s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single'} elim · Bo${s.bestOf}${s.finalBestOf !== s.bestOf ? ' (final Bo' + s.finalBestOf + ')' : ''} · ${s.teams.length} teams · ${s.venue || 'no venue'}${ms.length ? ` · ${done} of ${ms.filter(m => m.a || m.b || m.status !== 'Scheduled').length || ms.length} games done` : ''}`;
+    d.querySelector('small').textContent = `${({ playin: 'Play-ins + double elim', double: 'Double elim', rrplayoffs: 'Round robin + MPL playoffs' })[s.format] || 'Single elim'} · Bo${s.bestOf}${s.finalBestOf !== s.bestOf ? ' (final Bo' + s.finalBestOf + ')' : ''} · ${s.teams.length} teams · ${s.venue || 'no venue'}${ms.length ? ` · ${done} of ${ms.filter(m => m.a || m.b || m.status !== 'Scheduled').length || ms.length} games done` : ''}`;
     const sc = (cacheGet('scanners') || []).filter(a => a.team === SCORER && a.active && a.sport === s.id).map(a => a.staff);
     d.querySelector('small').textContent += ` · Scorers: ${sc.length ? sc.join(' & ') : 'none yet'}${sc.length === 1 ? ' (needs 2)' : ''}`;
     d.querySelector('[data-e]').addEventListener('click', () => openSportForm(s));
@@ -1027,7 +1027,12 @@ function renderGames() {
   const ms = SP.matches.filter(m => m.sport === s.id).sort((a, b) => String(a.date + a.time).localeCompare(String(b.date + b.time)) || a.round - b.round);
   const days = (sched.days || []).map(d => d.date);
   $('#gDay').innerHTML = (days.length ? days : [serverNow ? serverNow.date : '']).map(d => `<option value="${d}">${d ? fmtDate(d) : 'Today'}</option>`).join('');
-  $('#gNote').textContent = (ms.length ? 'Making a new bracket replaces the current one and deletes its scores. ' : '') + `Games are set back to back on ${s.venue || 'one court'}. Change any date or time below.`;
+  const rr = s.format === 'rrplayoffs';
+  $('#gDayWrap').style.display = rr ? 'none' : '';
+  $('#gNote').textContent = (ms.length ? 'Making a new bracket replaces the current one and deletes its scores. ' : '') + (rr
+    ? `Stage 1: every house plays every house once (15 games). Rounds 1–3 on ${fmtDay(days[0])}, rounds 4–5 and the play-ins on ${fmtDay(days[1])}, the rest of the playoffs on ${fmtDay(days[2])}. Change any date or time below.`
+    : `Games are set back to back on ${s.venue || 'one court'}. Change any date or time below.`);
+  renderGroup(s, ms);
   $('#gGo').querySelector('span').textContent = ms.length ? 'Remake bracket' : 'Make bracket';
   const L = $('#gList'); L.innerHTML = '';
   ms.forEach(m => {
@@ -1102,15 +1107,62 @@ async function openPlayers() {
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+const fmtDay = d => d ? fmtDate(d) : 'the next event day';
+// Round robin (MLBB): dice, custom matchups, group table and tie seeding
+function renderGroup(s, ms) {
+  const box = $('#gGroup'), g = (SP.groups || {})[s.id];
+  if (s.format !== 'rrplayoffs' || !ms.length || !g) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  const R = ms.filter(m => m.bracket === 'R'), T = s.teams, opt = v => T.map(t => `<option value="${esc(t)}"${t === v ? ' selected' : ''}>${esc(shortT(t))}</option>`).join('');
+  const rounds = [0, 1, 2, 3, 4].map(r => R.filter(m => m.round === r).sort((a, b) => a.order - b.order));
+  const lockG = g.groupLocked;
+  box.innerHTML = `<div class="rr-head"><p class="adm-label">Stage 1 · Round robin matchups</p>
+      <button type="button" class="btn small" id="rrDice"${lockG ? ' disabled' : ''}>🎲 Roll matchups</button></div>
+    <p class="adm-hint">${lockG ? 'Group games have started, so the matchups are locked.' : 'Roll the dice for a random schedule, or change any game below and tap Save. Every house plays once per round and meets every house once.'}</p>
+    <div class="rr-rounds">${rounds.map((rd, r) => `<div class="rr-rd"><b>Round ${r + 1}</b><small>${rd[0] && rd[0].date ? fmtDate(rd[0].date) : ''}</small>
+      ${rd.map(m => `<div class="rr-g${m.status === 'Final' ? ' fin' : ''}"><select data-r="${r}" data-s="a"${lockG ? ' disabled' : ''}>${opt(m.a)}</select><i>vs</i><select data-r="${r}" data-s="b"${lockG ? ' disabled' : ''}>${opt(m.b)}</select></div>`).join('')}</div>`).join('')}</div>
+    ${lockG ? '' : '<button type="button" class="btn small ghostish" id="rrSave">Save matchups</button>'}
+    <p class="adm-label" style="margin-top:14px">Group table · ${g.played} of ${g.games} played</p>
+    <ol class="rr-tbl" id="rrTbl"></ol>
+    <p class="adm-hint" id="rrSeedNote"></p>
+    <div class="row" id="rrSeedBtns" hidden><button type="button" class="btn small" id="rrSeed">Seed playoffs in this order</button></div>`;
+  let order = g.rows.map(r => r.team);
+  const canMove = g.done && !g.locked, wins = {}; g.rows.forEach(r => wins[r.team] = r.w);
+  const draw = () => {
+    $('#rrTbl').innerHTML = order.map((t, i) => { const r = g.rows.find(x => x.team === t);
+      const up = canMove && i > 0 && wins[order[i - 1]] === r.w, dn = canMove && i < order.length - 1 && wins[order[i + 1]] === r.w;
+      const tied = r.tied && g.done; return `<li class="${tied ? 'tie' : ''}${g.played && i < 2 ? ' ub' : ''}"><span class="rk">#${i + 1}</span><b>${esc(houseName(t))}</b><span class="wl">${r.w}–${r.l}</span>
+        ${tied ? '<em>tied</em>' : '<em></em>'}<span class="mv">${up ? `<button type="button" data-u="${i}" aria-label="Move up">▲</button>` : ''}${dn ? `<button type="button" data-d="${i}" aria-label="Move down">▼</button>` : ''}</span></li>`; }).join('');
+    $('#rrTbl').querySelectorAll('[data-u],[data-d]').forEach(b => b.addEventListener('click', () => { const i = +(b.dataset.u || b.dataset.d), j = b.dataset.u ? i - 1 : i + 1;
+      [order[i], order[j]] = [order[j], order[i]]; draw(); }));
+  };
+  draw();
+  $('#rrSeedNote').textContent = g.locked ? 'Playoffs have started. Seeds are locked.'
+    : !g.done ? '#1–#2 go to the UB Semifinals. #3–#6 play the play-ins (#4 v #5, #3 v #6). The playoffs fill in by themselves when the group ends.'
+    : g.unresolved ? '⚠ Houses are level on wins and head-to-head. Play a decider (or roll the dice), then use ▲ ▼ to set the order and tap Seed playoffs.'
+    : 'Group done: the playoffs are seeded. Use ▲ ▼ only to change houses that are level on wins.';
+  $('#rrSeedBtns').hidden = !(canMove && order.some((t, i) => i && wins[order[i - 1]] === wins[t]));
+  const dice = $('#rrDice'); if (dice) dice.addEventListener('click', async () => {
+    if (!confirmTwice('dice:' + s.id, 'Tap 🎲 again: all 15 group matchups are redrawn', $('#gMsg'))) return;
+    busyBtn(dice, true); const r = await api({ action: 'adminGroupRoll', id: s.id }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+    setMsg($('#gMsg'), r.ok ? '🎲 New matchups drawn.' : r.error, r.ok ? 'ok' : 'error'); loadSports(true); });
+  const sv = $('#rrSave'); if (sv) sv.addEventListener('click', async () => {
+    const out = [0, 1, 2, 3, 4].map(r => { const a = [...box.querySelectorAll(`select[data-r="${r}"][data-s="a"]`)], b = [...box.querySelectorAll(`select[data-r="${r}"][data-s="b"]`)]; return a.map((x, i) => [x.value, b[i].value]); });
+    busyBtn(sv, true); const r = await api({ action: 'adminGroupSave', id: s.id, rounds: out }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+    busyBtn(sv, false); setMsg($('#gMsg'), r.ok ? 'Matchups saved.' : r.error, r.ok ? 'ok' : 'error'); if (r.ok) loadSports(true); });
+  $('#rrSeed').addEventListener('click', async e => { const b = e.currentTarget; busyBtn(b, true);
+    const r = await api({ action: 'adminSeed', id: s.id, order }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+    busyBtn(b, false); setMsg($('#gMsg'), r.ok ? 'Playoffs seeded.' : r.error, r.ok ? 'ok' : 'error'); if (r.ok) loadSports(true); });
+}
 $('#gGo').addEventListener('click', async () => {
   const s = SP.sports.find(x => x.id === spOpen); if (!s) return;
   if (SP.matches.some(m => m.sport === s.id) && !confirmTwice('gen:' + s.id, `Tap again: the ${s.name} bracket and all its scores are replaced`, $('#gMsg'))) return;
   const b = $('#gGo'); busyBtn(b, true);
   try {
-    const r = await api({ action: 'adminSportGenerate', id: s.id, opts: { seeding: $('#gSeed').value, date: $('#gDay').value, time: $('#gTime').value, minutes: +$('#gMin').value } });
+    const r = await api({ action: 'adminSportGenerate', id: s.id, opts: { seeding: $('#gSeed').value, date: $('#gDay').value, days: s.format === 'rrplayoffs' ? (sched.days || []).map(d => d.date) : undefined, time: $('#gTime').value, minutes: +$('#gMin').value } });
     setMsg($('#gMsg'), r.ok ? `Bracket made: ${r.matches} games.` : r.error, r.ok ? 'ok' : 'error');
     if (r.ok) await loadSports(true);
   } catch (e) { if (e.message !== 'unauthorized') setMsg($('#gMsg'), 'Failed. Check your internet.', 'error'); }
   finally { busyBtn(b, false); }
 });
-setInterval(() => { if (current === 'sports' && key && role === 'full' && document.visibilityState === 'visible' && !document.activeElement.closest('#spForm, #gList')) loadSports(true); }, 20000);
+setInterval(() => { if (current === 'sports' && key && role === 'full' && document.visibilityState === 'visible' && !document.activeElement.closest('#spForm, #gList, #gGroup')) loadSports(true); }, 20000);

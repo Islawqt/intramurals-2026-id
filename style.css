@@ -1003,3 +1003,23 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .g-row.live small{color:#9b2c2c;font-weight:600}.g-row.fin small{color:#2f6b3a}
 .g-when{display:flex;gap:6px}.g-when input{width:auto;padding:6px 8px;font-size:15px;margin:0}
 @media(max-width:560px){.sp-2,.sp-3{grid-template-columns:1fr}.sp-4{grid-template-columns:1fr 1fr}.sp-6{grid-template-columns:repeat(3,1fr)}.g-row{grid-template-columns:1fr}}
+/* round robin admin (MLBB) */
+.rr-adm{padding:12px;margin-bottom:12px;border:1px solid rgba(90,60,30,.35);border-radius:10px;background:rgba(253,248,234,.6)}
+.rr-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.rr-head .adm-label{margin:0}
+.rr-rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:8px 0}
+.rr-rd{padding:8px;border:1px solid rgba(90,60,30,.3);border-radius:8px;background:#fdf8ea}
+.rr-rd>b{font:700 13px Cinzel,serif;letter-spacing:.08em;color:var(--ink-soft)}
+.rr-rd>small{float:right;color:var(--ink-soft)}
+.rr-g{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-top:6px}
+.rr-g select{width:100%;padding:6px;border:1px solid rgba(90,60,30,.45);border-radius:6px;background:#fffaf0;font:15px 'EB Garamond',serif;color:var(--ink)}
+.rr-g i{font:italic 13px 'EB Garamond',serif;color:var(--ink-soft)}
+.rr-g.fin select{background:#e9dfc4}
+.rr-tbl{list-style:none;margin:6px 0;padding:0}
+.rr-tbl li{display:grid;grid-template-columns:34px 1fr auto auto auto;gap:8px;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(90,60,30,.2)}
+.rr-tbl li.ub{background:rgba(201,162,74,.18)}
+.rr-tbl .rk{font:700 13px Cinzel,serif;color:var(--ink-soft)}
+.rr-tbl .wl{font:700 15px Cinzel,serif}
+.rr-tbl em{font:700 11px Cinzel,serif;letter-spacing:.08em;color:var(--danger);font-style:normal}
+.rr-tbl li.tie{outline:1.5px dashed var(--danger);outline-offset:-2px}
+.rr-tbl .mv button{margin-left:4px;padding:3px 8px;border:1px solid rgba(90,60,30,.5);border-radius:6px;background:#fffaf0;cursor:pointer}

@@ -146,11 +146,42 @@ function renderBrackets() {
   sportChips($('#brSports'), brSport, false, id => { brSport = id; zoom = 'fit'; try { localStorage.setItem('sb_sport', id); } catch (e) {} renderBrackets(); });
   const s = data.sports.find(x => x.id === brSport), ms = data.matches.filter(m => m.sport === s.id);
   $('#brTitle').textContent = s.name.toUpperCase();
-  $('#brSub').textContent = `${s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single'} elimination · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
+  const rr = s.format === 'rrplayoffs';
+  $('#brSub').textContent = `${rr ? 'Round robin + MPL playoffs' : (s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single') + ' elimination'} · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
   $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go to the upper bracket. Play-in losers play Last Chance for the 4th upper spot; the rest start in the lower bracket. ↓ = dropped down after a loss.'
+    : rr ? 'Stage 1: every house plays every house once (a win = 1 point). #1–#2 go straight to the Upper Bracket Semifinals; #3–#6 play the play-ins (#4 v #5, #3 v #6, losers out). One more loss in the lower bracket and you’re out. Ties: head-to-head, then a decider. ↓ = dropped down after a loss.'
     : s.format === 'double' ? 'UB = upper bracket (no losses yet) · LB = lower bracket (one more loss and you’re out) · ↓ = dropped down from the upper bracket' : (ms.some(m => m.bracket === 'P') ? 'Semifinal losers play for 3rd place.' : '');
+  $('#brGroup').hidden = !rr;
+  if (rr) { const all = ms.length ? ms : rrBlank(s); drawGroup(s, all.filter(m => m.bracket === 'R')); drawBracket(s, all.filter(m => m.bracket !== 'R')); return; }
   if (!ms.length) { $('#brCanvas').innerHTML = '<p class="sb-empty">The bracket for this sport is not out yet.</p>'; $('#brSize').style.width = ''; $('#brSize').style.height = '80px'; $('#brCanvas').style.transform = ''; return; }
   drawBracket(s, ms);
+}
+// Round robin (MLBB): the group table + the 5 rounds, and an empty template before the bracket is made
+function rrBlank(s) {
+  const k = id => s.id + '-' + id, M = [];
+  const add = (id, br, round, label, order, win, lose, seeds, bo) => M.push({ id: k(id), sport: s.id, bracket: br, round, label, order, a: '', b: '', status: 'Scheduled', winTo: win ? k(win) : '', loseTo: lose ? k(lose) : '', seeds, bestOf: bo, wa: 0, wb: 0, games: '', date: '', time: '' });
+  for (let r = 0; r < 5; r++) for (let i = 0; i < 3; i++) add('g' + (r + 1) + (i + 1), 'R', r, `Round ${r + 1} · Game ${i + 1}`, i + 1, '', '', null, s.bestOf);
+  add('xp1', 'U', 0, 'Play-in 1', 1, 'xs1:B', '', [4, 5], s.bestOf); add('xp2', 'U', 0, 'Play-in 2', 2, 'xs2:B', '', [3, 6], s.bestOf);
+  add('xs1', 'U', 1, 'UB Semifinal 1', 1, 'xf:A', 'xl:A', [1, 0], s.bestOf); add('xs2', 'U', 1, 'UB Semifinal 2', 2, 'xf:B', 'xl:B', [2, 0], s.bestOf);
+  add('xf', 'U', 2, 'UB Final', 1, 'xg:A', 'xlf:B', null, s.bestOf); add('xl', 'L', 2, 'LB Semifinal', 1, 'xlf:A', '', null, s.bestOf);
+  add('xlf', 'L', 3, 'LB Final', 1, 'xg:B', '', null, s.bestOf); add('xg', 'G', 4, 'Grand Final', 1, '', '', null, s.finalBestOf);
+  return M;
+}
+function drawGroup(s, R) {
+  const g = (data.groups || {})[s.id] || { rows: s.teams.map((t, i) => ({ team: t, w: 0, l: 0, rank: i + 1 })), played: 0, games: 15 };
+  const blank = !R.some(m => m.a), started = g.played > 0;
+  const rows = started || g.done ? g.rows : g.rows.slice().sort((a, b) => houseName(a.team).localeCompare(houseName(b.team)));
+  const tag = i => i < 2 ? '<em class="ub">UB Semis</em>' : '<em>Play-ins</em>';
+  const tbl = `<table class="rr-t"><thead><tr><th>#</th><th>House</th><th>W</th><th>L</th><th>Pts</th><th></th></tr></thead><tbody>${rows.map((r, i) =>
+    `<tr class="${started && i < 2 ? 'top' : ''}" style="--c:${color(r.team)}"><td>${started ? i + 1 : '–'}</td><td><img src="${crest(r.team)}" alt=""><b>${esc(houseName(r.team))}</b>${r.tied && g.done ? ' <small class="tie">tied</small>' : ''}</td><td>${r.w}</td><td>${r.l}</td><td><b>${r.w}</b></td><td>${started ? tag(i) : ''}</td></tr>`).join('')}</tbody></table>`;
+  const side = (m, k) => { const t = m[k], cls = m.status === 'Final' && t ? (m.winner === t ? 'w' : 'l') : '';
+    return t ? `<span class="${cls}"><img src="${crest(t)}" alt="">${esc(short(t))}</span>` : '<span class="tbd">TBD</span>'; };
+  const rounds = [0, 1, 2, 3, 4].map(r => { const rd = R.filter(m => m.round === r).sort((a, b) => a.order - b.order), d = rd.find(m => m.date);
+    return `<div class="rr-r"><p>Round ${r + 1}${d ? ` <small>${fdate(d.date).replace(/^\w+, /, '')}</small>` : ''}</p>${rd.map(m =>
+      `<div class="rr-m${m.status === 'Live' ? ' live' : ''}${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}">${side(m, 'a')}<i>${m.status === 'Final' ? (m.winner === m.a ? 'W–L' : 'L–W') : m.status === 'Live' ? '● LIVE' : m.time ? f12(m.time) : 'vs'}</i>${side(m, 'b')}</div>`).join('')}</div>`; }).join('');
+  $('#brGroup').innerHTML = `<div class="rr-h">STAGE 1 · ROUND ROBIN <small>${blank ? 'Matchups are drawn soon' : `${g.played} of ${g.games} games played`}</small></div>
+    <div class="rr-b">${tbl}<div class="rr-rs">${rounds}</div></div><div class="rr-h">STAGE 2 · PLAYOFFS <small>${g.done ? 'Seeded from the group table' : 'Filled in from the group table'}</small></div>`;
+  $('#brGroup').querySelectorAll('.tap').forEach(el => el.addEventListener('click', () => openBox(el.dataset.m)));
 }
 const BW = 220, CW = 270, SP = 108, CAP = 18, ROW = 36;
 function drawBracket(s, ms) {
@@ -207,7 +238,7 @@ function drawBracket(s, ms) {
     const row = side => { const t = m[side], from = src[m.id + ':' + side.toUpperCase()], drop = from && from.w === 'Loser' && m.bracket === 'L';
       const cls = !t ? 'tbd' : done ? (m.winner === t ? 'w' : 'l') : live ? 'live' : '';
       return t ? `<div class="br-t ${cls}${drop ? ' drop' : ''}" style="--c:${color(t)}"${drop ? ` title="Dropped from ${esc(from.label)}"` : ''}><i></i><img src="${crest(t)}" alt=""><span>${drop ? '<u>↓</u>' : ''}${esc(houseName(t))}</span><b>${val(side)}</b></div>`
-        : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>${from ? `${from.w} of ${esc(from.label.replace(' · Match ', ' #'))}` : 'TBD'}</span><b></b></div>`; };
+        : `<div class="br-t tbd" style="--c:#4a3a28"><i></i><span></span><span>${from ? `${from.w} of ${esc(from.label.replace(' · Match ', ' #'))}` : m.seeds && m.seeds[side === 'a' ? 0 : 1] ? `Group #${m.seeds[side === 'a' ? 0 : 1]}` : 'TBD'}</span><b></b></div>`; };
     const cap = `${m.date ? fdate(m.date).replace(/^\w+, /, '') + ' · ' : ''}${f12(m.time) ? f12(m.time) + ' · ' : ''}<b>${esc(m.label)}</b>${m.bestOf > 1 ? ' · Bo' + m.bestOf : ''}${live ? ' · <span class="lv">● LIVE</span>' : ''}`;
     html += `<div class="br-m${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}" style="left:${p.x}px;top:${p.y}px"><div class="br-cap">${cap}</div>${row('a')}${row('b')}</div>`;
   });
