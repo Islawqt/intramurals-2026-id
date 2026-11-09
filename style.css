@@ -1039,3 +1039,22 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 /* admin: long lists only draw the rows on screen; the starry sky stays on its own layer */
 .att-row,.g-row{content-visibility:auto;contain-intrinsic-size:auto 58px}
 .sky{will-change:transform;contain:strict}
+/* admin: bracket editor */
+.g-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.g-seg{display:inline-flex;border:1.5px solid #5a3d1c;border-radius:999px;overflow:hidden}
+.g-seg button{padding:7px 16px;border:0;background:transparent;font:700 13px Cinzel,serif;letter-spacing:.06em;color:#5a3d1c;cursor:pointer}
+.g-seg button.on{background:#2b1d10;color:#f1d27a}
+.br-box.adm-br{margin:0 0 12px;background:#1c130b}
+.adm-br .br-head span{font:700 13px Cinzel,serif;letter-spacing:.1em;color:#f1d27a}
+.adm-br .br-m{cursor:pointer}
+.adm-br .br-m:hover .br-t{border-color:#f1d27a}
+.adm-br .br-m:hover .br-cap b{color:#fff}
+.m-ed{width:min(460px,calc(100vw - 32px));padding:18px;border:2px solid #c9a24a;border-radius:12px;background:#f7ecd2;color:#2b1d10}
+.m-ed::backdrop{background:rgba(10,6,3,.6)}
+.m-ed .adm-label{margin:0 0 4px;font-size:15px}
+.m-ed-teams{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;margin:8px 0}
+.m-ed-teams b{padding-bottom:12px;font:italic 15px 'IM Fell English',serif;color:#5a4630}
+.m-ed select,.m-ed input{width:100%;padding:9px;border:1px solid rgba(90,60,30,.45);border-radius:8px;background:#fdf8ea;font:16px 'EB Garamond',serif;color:#2b1d10;margin-top:4px}
+.m-ed select:disabled{opacity:.6}
+.m-ed-st{margin:6px 0;font:700 14px Cinzel,serif;color:#5a3d1c}
+.m-ed-acts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
