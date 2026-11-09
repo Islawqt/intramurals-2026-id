@@ -62,7 +62,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 const sportName = id => ((data.sports.find(s => s.id === id) || {}).name || '');
 const playable = m => m.a && m.b;
 const streamOf = m => /^https:\/\//.test(m.stream || '') ? m.stream : ((data.sports.find(s => s.id === m.sport) || {}).stream || '');
-const watchBtn = (m, replay) => { const u = replay ? (/^https:\/\//.test(m.stream || '') ? m.stream : '') : streamOf(m);   // replay: only a game's own video link return u ? `<a class="sb-wb${replay ? ' rp' : ''}" href="${esc(u)}" target="_blank" rel="noopener">${replay ? '▶ Replay' : '▶ Watch live'}</a>` : ''; };
+const watchBtn = (m, replay) => { const u = replay ? (/^https:\/\//.test(m.stream || '') ? m.stream : '') : streamOf(m); return u ? `<a class="sb-wb${replay ? ' rp' : ''}" href="${esc(u)}" target="_blank" rel="noopener">${replay ? '▶ Replay' : '▶ Watch live'}</a>` : ''; };
 function paintWatch() {
   const live = data.matches.filter(m => m.status === 'Live' && streamOf(m)), w = $('#watch');
   w.hidden = !live.length; if (!live.length) return;
