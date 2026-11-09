@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="app-version" content="20261109053732">
+  <meta name="app-version" content="20261109053925">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#140e09">
@@ -27,16 +27,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="manifest" href="admin.webmanifest?v=20261109053732">
+  <link rel="manifest" href="admin.webmanifest?v=20261109053925">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/app/admin-192.png">
   <link rel="apple-touch-icon" href="assets/app/admin-180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="SSC Admin">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="style.css?v=20261109053732">
-  <link rel="stylesheet" href="sports.css?v=20261109053732">
-  <script src="update.js?v=20261109053732" data-resume></script>
+  <link rel="stylesheet" href="style.css?v=20261109053925">
+  <link rel="stylesheet" href="sports.css?v=20261109053925">
+  <script src="update.js?v=20261109053925" data-resume></script>
 </head>
 <body class="admin-page">
   <div class="sky" aria-hidden="true"></div>
@@ -290,6 +290,7 @@
           </div>
           <label id="spModeWrap">Pickleball play<select id="spMode"><option value="doubles">Doubles (official side-out scoring)</option><option value="singles">Singles (official side-out scoring)</option><option value="rally">Rally scoring (every rally is a point: simpler)</option></select></label>
           <p class="adm-hint" id="spRuleNote"></p>
+          <label>Live stream link (Facebook) <small class="opt">optional · shows a "Watch live" button on the scoreboard</small><input id="spStream" type="url" inputmode="url" placeholder="https://www.facebook.com/…/videos/…"></label>
           <label>Teams</label><div class="att-chips" id="spTeams"></div>
           <p class="adm-hint" style="margin:6px 0 2px">Points by final place only (game wins don't add points)</p><div class="sp-6"><label>1st (Champion)<input id="spP1" type="number" min="0" max="100"></label><label>2nd<input id="spP2" type="number" min="0" max="100"></label><label>3rd<input id="spP3" type="number" min="0" max="100"></label><label>4th<input id="spP4" type="number" min="0" max="100"></label><label>5th<input id="spP5" type="number" min="0" max="100"></label><label>6th<input id="spP6" type="number" min="0" max="100"></label></div>
           <label class="agree"><input id="spThird" type="checkbox" checked> <span>3rd-place game (single elimination)</span></label>
@@ -361,15 +362,16 @@
       <p class="adm-hint" id="mEdNote"></p>
       <div class="m-ed-teams"><label>Team A<select id="mEdA"></select></label><b>vs</b><label>Team B<select id="mEdB"></select></label></div>
       <div class="sp-2"><label>Date<input type="date" id="mEdDate"></label><label>Time<input type="time" id="mEdTime"></label></div>
+      <label>Live stream link for this game <small class="opt">optional · empty = the sport's link</small><input type="url" id="mEdStream" inputmode="url" placeholder="https://www.facebook.com/…/videos/…"></label>
       <p class="m-ed-st" id="mEdSt"></p>
       <div class="m-ed-acts" id="mEdActs"></div>
       <p id="mEdMsg" class="msg" role="status"></p>
       <div class="row"><button type="button" class="btn ghost" id="mEdClose">Close</button><button type="button" class="btn" id="mEdSave"><span>Save</span></button></div>
     </form>
   </dialog>
-  <script src="config.js?v=20261109053732"></script>
-  <script src="bracket.js?v=20261109053732"></script>
-  <script src="admin.js?v=20261109053732"></script>
-  <script src="pwa.js?v=20261109053732"></script>
+  <script src="config.js?v=20261109053925"></script>
+  <script src="bracket.js?v=20261109053925"></script>
+  <script src="admin.js?v=20261109053925"></script>
+  <script src="pwa.js?v=20261109053925"></script>
 </body>
 </html>

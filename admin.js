@@ -1003,7 +1003,7 @@ function openSportForm(s) {
   spEdit = s || null; spOpen = null; spPl = null; $('#spGames').hidden = true; $('#spPlayers').hidden = true; renderSports();
   const f = $('#spForm'); f.hidden = false;
   $('#spFormTitle').textContent = s ? 'Edit ' + s.name : 'New sport';
-  $('#spName').value = s ? s.name : ''; $('#spVenue').value = s ? s.venue : '';
+  $('#spName').value = s ? s.name : ''; $('#spVenue').value = s ? s.venue : ''; $('#spStream').value = s ? s.stream || '' : '';
   $('#spFormat').value = s ? s.format : 'single'; $('#spBo').value = s ? s.bestOf : 1; $('#spFbo').value = s ? s.finalBestOf : 1;
   $('#spType').value = s ? s.scoreType : 'rally';
   $('#spPreset').value = s ? guessPreset(s) : 'custom';
@@ -1064,7 +1064,7 @@ $('#spForm').addEventListener('submit', async e => {
   const teams = [...$('#spTeams').querySelectorAll('input:checked')].map(i => i.value);
   try {
     const r = await api({ action: 'adminSportSave', sport: { id: spEdit && spEdit.id, name: $('#spName').value, venue: $('#spVenue').value, format: $('#spFormat').value,
-      bestOf: +$('#spBo').value, finalBestOf: +$('#spFbo').value, scoreType: $('#spType').value, teams, third: $('#spThird').checked,
+      bestOf: +$('#spBo').value, finalBestOf: +$('#spFbo').value, scoreType: $('#spType').value, teams, third: $('#spThird').checked, stream: $('#spStream').value.trim(),
       rules: { target: +$('#spTarget').value || 0, deciding: +$('#spDeciding').value || 0, cap: +$('#spCap').value || 0, mode: $('#spMode').value },
       points: [1, 2, 3, 4, 5, 6].map(i => +$('#spP' + i).value || 0) } });
     if (!r.ok) { setMsg($('#spMsg'), r.error, 'error'); return; }
@@ -1258,7 +1258,7 @@ function openEd(id) {
     : 'Pick the teams by hand if needed (normally they fill in by themselves from earlier games).';
   const opts = v => `<option value="">TBD</option>` + s.teams.map(t => `<option value="${esc(t)}"${t === v ? ' selected' : ''}>${esc(houseName(t))}</option>`).join('');
   $('#mEdA').innerHTML = opts(m.a); $('#mEdB').innerHTML = opts(m.b); $('#mEdA').disabled = $('#mEdB').disabled = lockTeams;
-  $('#mEdDate').value = m.date || ''; $('#mEdTime').value = m.time || '';
+  $('#mEdDate').value = m.date || ''; $('#mEdTime').value = m.time || ''; $('#mEdStream').value = m.stream || '';
   $('#mEdSt').textContent = m.status === 'Final' ? `Final: ${houseName(m.winner)} won${m.bestOf > 1 ? ` ${Math.max(m.wa, m.wb)}–${Math.min(m.wa, m.wb)}` : ''}`
     : m.status === 'Live' ? `LIVE${m.bestOf > 1 ? ` · series ${m.wa}–${m.wb}` : ''} · ${m.sa}–${m.sb}` : (m.a && m.b ? 'Not played yet' : 'Waiting for teams');
   const acts = $('#mEdActs'); acts.innerHTML = '';
@@ -1283,6 +1283,7 @@ $('#mEdSave').addEventListener('click', async () => {
   const f = {};
   if ($('#mEdDate').value !== (m.date || '')) f.date = $('#mEdDate').value;
   if ($('#mEdTime').value !== (m.time || '')) f.time = $('#mEdTime').value;
+  if ($('#mEdStream').value.trim() !== (m.stream || '')) f.stream = $('#mEdStream').value.trim();
   if (!$('#mEdA').disabled && ($('#mEdA').value !== (m.a || '') || $('#mEdB').value !== (m.b || ''))) {
     if ($('#mEdA').value && $('#mEdA').value === $('#mEdB').value) return setMsg($('#mEdMsg'), 'Pick two different teams.', 'error');
     f.a = $('#mEdA').value; f.b = $('#mEdB').value;

@@ -61,10 +61,19 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 const sportName = id => ((data.sports.find(s => s.id === id) || {}).name || '');
 const playable = m => m.a && m.b;
+const streamOf = m => /^https:\/\//.test(m.stream || '') ? m.stream : ((data.sports.find(s => s.id === m.sport) || {}).stream || '');
+const watchBtn = (m, replay) => { const u = replay ? (/^https:\/\//.test(m.stream || '') ? m.stream : '') : streamOf(m);   // replay: only a game's own video link return u ? `<a class="sb-wb${replay ? ' rp' : ''}" href="${esc(u)}" target="_blank" rel="noopener">${replay ? '▶ Replay' : '▶ Watch live'}</a>` : ''; };
+function paintWatch() {
+  const live = data.matches.filter(m => m.status === 'Live' && streamOf(m)), w = $('#watch');
+  w.hidden = !live.length; if (!live.length) return;
+  const m = live[0]; w.href = streamOf(m);
+  $('#watchTxt').textContent = `${sportName(m.sport)} · ${short(m.a)} vs ${short(m.b)}${live.length > 1 ? ` · +${live.length - 1} more live` : ''}`;
+}
 const sortTime = (x, y) => String(x.date + x.time).localeCompare(String(y.date + y.time));
 
 function render() {
   if (!data) return;
+  paintWatch();
   if (tab === 'ov') renderOverview();
   if (tab === 'br') renderBrackets();
   if (tab === 'sc') renderSchedule();
@@ -141,7 +150,7 @@ function matchCard(m, live) {
   <div class="sb-mr"><div class="sb-side"><img src="${crest(m.a)}" alt="">${short(m.a)}</div>
   <div class="sb-score">${live ? `<span id="s-${m.id}a" class="${sa > sb ? 'lead' : ''}">${sa}</span><i>vs</i><span id="s-${m.id}b" class="${sb > sa ? 'lead' : ''}">${sb}</span>` : '<i>vs</i>'}</div>
   <div class="sb-side r"><img src="${crest(m.b)}" alt="">${short(m.b)}</div></div>
-  <div class="sb-mf">${live ? per : esc(m.venue || '')}${hasBox(m) ? ' · <u>Player stats</u>' : ''}</div></div>`;
+  <div class="sb-mf">${live ? per : esc(m.venue || '')}${hasBox(m) ? ' · <u>Player stats</u>' : ''}</div>${live ? watchBtn(m) : ''}</div>`;
 }
 
 // ---------- brackets ----------
@@ -217,14 +226,26 @@ $('#zFit').addEventListener('click', () => { zoom = zoom === 'fit' ? 1 : 'fit'; 
 window.addEventListener('resize', () => { if (tab === 'br') fit(); });
 
 // ---------- schedule ----------
+let scWhen = 'all';
 function renderSchedule() {
   sportChips($('#scSports'), scSport, true, id => { scSport = id; renderSchedule(); });
-  const ms = data.matches.filter(m => (scSport === 'all' || m.sport === scSport) && (m.a || m.b || m.label)).sort((x, y) => sortTime(x, y) || x.order - y.order);
+  const all = data.matches.filter(m => (scSport === 'all' || m.sport === scSport) && (m.a || m.b || m.label));
+  const is = { all: () => true, live: m => m.status === 'Live', up: m => m.status === 'Scheduled', end: m => m.status === 'Final' };
+  const F = [['all', 'All'], ['live', 'Live'], ['up', 'Upcoming'], ['end', 'Ended']];
+  $('#scFilter').innerHTML = F.map(([k, n]) => { const c = all.filter(is[k]).length;
+    return `<button type="button" data-w="${k}" class="${k === scWhen ? 'on' : ''}${k === 'live' && c ? ' hot' : ''}">${n}${k === 'all' ? '' : ` <em>${c}</em>`}</button>`; }).join('');
+  $('#scFilter').querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => { scWhen = b.dataset.w; renderSchedule(); }));
+  const ended = scWhen === 'end';
+  const ms = all.filter(is[scWhen]).sort((x, y) => (ended ? -1 : 1) * (sortTime(x, y) || x.order - y.order));
   const days = {};
   ms.forEach(m => { (days[m.date || ''] = days[m.date || ''] || []).push(m); });
-  $('#sched').innerHTML = Object.keys(days).sort((a, b) => (a || 'z').localeCompare(b || 'z')).map(d => `<div class="sc-day"><h4>${esc(fdate(d))}</h4>${days[d].map(m => {
-    const st = m.status === 'Final' ? `<span class="sc-st f">Final · ${scoreLine(m)}</span>` : m.status === 'Live' ? `<span class="sc-st l">Live · ${m.bestOf > 1 ? m.wa + '–' + m.wb : m.sa + '–' + m.sb}</span>` : `<span class="sc-st">${esc(m.label)}</span>`;
-    return `<div class="sc-row${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><span>${f12(m.time) || '—'}</span><span class="tms">${m.a ? short(m.a) : 'TBD'} vs ${m.b ? short(m.b) : 'TBD'}<small>${esc(sportName(m.sport))} · ${esc(m.label)} · ${esc(m.venue || '')}</small></span>${st}</div>`; }).join('')}</div>`).join('') || '<p class="sb-empty">No games yet.</p>';
+  const order = Object.keys(days).sort((a, b) => (a || 'z').localeCompare(b || 'z')); if (ended) order.reverse();
+  $('#sched').innerHTML = order.map(d => `<div class="sc-day"><h4>${esc(fdate(d))}</h4>${days[d].map(m => {
+    const st = m.status === 'Final' ? `<span class="sc-st f">Final · ${scoreLine(m)}</span>` : m.status === 'Live' ? `<span class="sc-st l">● Live · ${m.bestOf > 1 ? m.wa + '–' + m.wb : m.sa + '–' + m.sb}</span>` : `<span class="sc-st">Upcoming</span>`;
+    const tm = t => t ? `<b class="${m.status === 'Final' ? (m.winner === t ? 'w' : 'l') : ''}">${short(t)}</b>` : '<b>TBD</b>';
+    const btn = m.status === 'Live' ? watchBtn(m) : m.status === 'Final' ? watchBtn(m, true) : '';
+    return `<div class="sc-row${hasBox(m) ? ' tap' : ''}${m.status === 'Live' ? ' live' : ''}" data-m="${esc(m.id)}"><span>${f12(m.time) || '—'}</span><span class="tms">${tm(m.a)} vs ${tm(m.b)}<small>${esc(sportName(m.sport))} · ${esc(m.label)}${m.venue ? ' · ' + esc(m.venue) : ''}</small></span><span class="sc-r">${st}${btn}</span></div>`; }).join('')}</div>`).join('')
+    || `<p class="sb-empty">${{ live: 'No game is live right now.', up: 'No upcoming games.', end: 'No finished games yet.' }[scWhen] || 'No games yet.'}</p>`;
 }
 
 showTab(['ov', 'br', 'sc'].includes(tab) ? tab : 'ov');

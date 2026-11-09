@@ -2,7 +2,7 @@
 // - Files with ?v=<version> never change, so they come straight from the phone (cache first).
 // - Pages open from the phone too, then refresh in the background; update.js reloads once when a new version is out.
 // - Fonts are kept on the phone. API calls (Apps Script) and version.json always go to the network.
-const CACHE = 'ssc-apps-20261109053732';
+const CACHE = 'ssc-apps-20261109053925';
 const PAGES = ['admin.html', 'scanner.html', 'assets/vendor/jsQR.min.js'];   // the other pages are saved the first time they open
 
 self.addEventListener('install', e => {
