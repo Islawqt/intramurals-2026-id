@@ -40,13 +40,16 @@ async function openList() {
   stopWait(); show('listScreen');
   await loadList();
 }
+let listSig = '';
 async function loadList() {
   setMsg($('#listMsg'), data ? '' : 'Loading…');
   try {
     const r = await api({ action: 'scoreList', token: sess.token });
     if (expired(r)) return;
     if (!r.ok) return setMsg($('#listMsg'), r.error, 'error');
-    data = r; setMsg($('#listMsg'), ''); renderList();
+    setMsg($('#listMsg'), '');
+    const sig = JSON.stringify(r); if (sig === listSig && $('#list').children.length) return; listSig = sig;
+    data = r; renderList();
   } catch (e) { setMsg($('#listMsg'), 'No connection. Pull to refresh or try again.', 'error'); }
 }
 function renderList() {
@@ -327,4 +330,6 @@ $('#wFix').addEventListener('click', () => { stopWait(); show('playScreen'); pai
 $('#wList').addEventListener('click', () => openList());
 
 sess = getSess();
-if (sess && sess.token && sess.sport) openList(); else { setSess(null); show('keyScreen'); }
+if (sess && sess.token && sess.sport) openList(); else { setSess(null); show('keyScreen'); warmUp(); }
+// wake the server while someone types the login, so logging in isn't slow
+function warmUp() { fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"ping"}' }).catch(() => {}); }

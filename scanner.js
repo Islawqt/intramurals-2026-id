@@ -609,4 +609,4 @@ try { const saved = localStorage.getItem(ROT_STORE); if (saved) lockRotation(sav
 
 // Start
 sess = getSess();
-if (sess && sess.token) openScanner(); else show('keyScreen');
+if (sess && sess.token) openScanner(); else { show('keyScreen'); fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"ping"}' }).catch(() => {}); }   // wake the server while the login is typed

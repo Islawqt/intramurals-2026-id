@@ -1752,3 +1752,6 @@ document.querySelectorAll('[data-privacy]').forEach(b => b.addEventListener('cli
 $('#privacyClose').addEventListener('click', () => {
   if (privDlg.close) privDlg.close(); else privDlg.removeAttribute('open');
 });
+
+// wake the server while the student types their name, so "Find my record" answers faster
+fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"ping"}' }).catch(() => {});

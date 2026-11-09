@@ -899,7 +899,7 @@ $('#keyForm').addEventListener('submit', e => {
 $('#lockBtn').addEventListener('click', () => lock());
 
 key = getKey();
-if (key) open(); else show('keyScreen');
+if (key) open(); else { show('keyScreen'); fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"ping"}' }).catch(() => {}); }   // wake the server while the key is typed
 
 // ---------- sports & brackets ----------
 let SP = { sports: [], matches: [] }, spEdit = null, spOpen = null, spPl = null;

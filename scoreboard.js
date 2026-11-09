@@ -41,6 +41,7 @@ async function load() {
 }
 // last scores saved on this phone: the page shows them at once, then the live data replaces them
 const KEY = 'sb_board_v1';
+let boardSig = '';
 function apply(r, cached) {
     const closed = !!r.hidden;
     $('#closed').hidden = !closed; document.querySelector('.sb-tabs').hidden = closed;
@@ -50,6 +51,9 @@ function apply(r, cached) {
     $('#dot').className = 'sb-dot';
     $('#liveTxt').textContent = DEMO ? 'SAMPLE DATA · not real results' : cached ? 'Updating…' : `Live · updates every 15 seconds · ${f12(r.now.time.slice(0, 5))}`;
     if (cached) $('#dot').className = 'sb-dot off';
+    const sig = JSON.stringify([r.sports, r.matches, r.standings, r.box, r.leaders, r.groups]);
+    if (sig === boardSig) return;                              // same scores: keep the page as it is (no flicker, bracket zoom stays)
+    boardSig = sig;
     render();
 }
 setInterval(load, 15000);
