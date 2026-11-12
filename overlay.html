@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-  <meta name="app-version" content="20261109071539">
+  <meta name="app-version" content="20261112121207">
 <title>Sportfest 2026 MLBB Overlay</title>
 <meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
@@ -106,14 +106,13 @@ body.ck{background:repeating-conic-gradient(#3a3a3a 0 25%,#2c2c2c 0 50%) 0 0/40p
 
 
 /* ================= GRAND FINAL mode (stage = Grand Final): sun rays, laurels, gold ribbon, embers, shimmer, championship point ================= */
-.rays,.laurel,.mp{display:none}
+.rays,.mp{display:none}
 body.gf .rays{display:block;position:absolute;left:50%;top:52%;width:380px;height:380px;transform:translate(-50%,-50%);border-radius:50%;
   background:repeating-conic-gradient(from 0deg,rgba(255,222,140,.55) 0 5deg,transparent 5deg 15deg);
   -webkit-mask:radial-gradient(circle,#000 18%,rgba(0,0,0,.5) 40%,transparent 68%);mask:radial-gradient(circle,#000 18%,rgba(0,0,0,.5) 40%,transparent 68%);
   animation:spin 40s linear infinite}
 @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 body.gf .emb .glow{width:300px;height:300px;background:radial-gradient(circle,rgba(255,226,140,.75) 0,rgba(255,170,60,.3) 38%,transparent 70%)}
-body.gf .laurel{display:block;position:absolute;left:50%;top:20px;width:236px;height:180px;transform:translateX(-50%);filter:drop-shadow(0 3px 4px rgba(0,0,0,.7))}
 body.gf .emb img{width:128px;margin-top:6px}
 body.gf .dust i{width:5px;height:5px;background:#ffe9a8;box-shadow:0 0 8px 3px rgba(255,170,60,.85)}
 /* plates: a slow gold light sweeps across */
@@ -168,7 +167,6 @@ body.al .guide{display:flex}
 
 <div class="names"><div class="tp a" id="nA"></div><div class="tp b" id="nB"></div></div>
 <div class="emb"><div class="rays"></div><div class="glow"></div><div class="dust" id="dust"></div>
-  <svg class="laurel" viewBox="0 0 236 180"><use href="#lb"/><use href="#lb" transform="translate(236 0) scale(-1 1)"/></svg>
   <img src="assets/og/crest-web.webp" alt="Sportfest 2026"></div>
 <div class="mp a" id="mpA"></div><div class="mp b" id="mpB"></div>
 <div class="ban a" id="bA"></div>
@@ -180,7 +178,7 @@ body.al .guide{display:flex}
 </div></div>
 <div class="guide s">Game stat bar goes inside this box</div><div class="guide m">Game minimap</div>
 
-<script src="config.js?v=20261109071539"></script>
+<script src="config.js?v=20261112121207"></script>
 <script>
 // Sportfest 2026 MLBB broadcast overlay (OBS Browser Source, 1920×1080). Automatic from the tournament data: crests, house names + colors, series, match + game.
 // URL: ?demo=1 sample · ?ck=1 checkerboard · ?bg=<img> preview background · ?align=1 guides · ?cx ?cw ?ch ?mw ?mh · ?match=<id>
