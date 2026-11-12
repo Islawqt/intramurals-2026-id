@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-  <meta name="app-version" content="20261112121207">
+  <meta name="app-version" content="20261112124022">
 <meta name="robots" content="noindex">
 <title>Sportfest 2026 MLBB Scene</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
@@ -81,7 +81,64 @@ body.pause .ban::before,body.pause .ban::after{background:linear-gradient(180deg
 .hg{display:none;width:70px;height:92px;margin-right:26px}
 body.pause .hg{display:block;animation:flip 4s ease-in-out infinite}
 @keyframes flip{0%,80%{transform:rotate(0)}100%{transform:rotate(180deg)}}
+/* LOBBY: full screen, smaller crests, both lineups (IGN + role) */
+.lu{display:none;width:520px;margin-top:4px;padding:10px 0;background:linear-gradient(180deg,rgba(20,12,6,.75),rgba(20,12,6,.55));border:1.5px solid rgba(201,162,74,.5);border-top:4px solid var(--c)}
+.lu li{display:grid;grid-template-columns:170px 1fr auto;align-items:center;gap:12px;padding:7px 22px;list-style:none;border-bottom:1px solid rgba(201,162,74,.15)}
+.lu li:last-child{border-bottom:0}
+.lu li small{font:700 15px Cinzel,serif;letter-spacing:.1em;color:#cbb88f;text-transform:uppercase}
+.lu li b{font:700 27px 'EB Garamond',serif;color:var(--parch);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu li em{font:700 12px Cinzel,serif;font-style:normal;letter-spacing:.14em;padding:4px 10px;border-radius:3px;background:linear-gradient(180deg,#fff1bd,#d4ad55);color:#2b1d10;box-shadow:0 0 0 1px #5e3f12}
+.lu li.sub{opacity:.75}
+.lu p{margin:14px 0;text-align:center;font:italic 22px 'IM Fell English',serif;color:#cbb88f}
+body.lobby .lu{display:block}
+body.lobby .mu{top:222px}
+body.lobby .cw{width:170px;height:190px}
+body.lobby .cw::before{inset:-34px}
+body.lobby .cw img{max-width:150px;max-height:185px}
+body.lobby .side{gap:12px}
+body.lobby .plate{min-width:520px;font-size:32px;padding:11px 30px}
+body.lobby .pips{display:none}
+body.lobby .vs b{font-size:96px}
+body.lobby .bot{bottom:40px;gap:12px}
+body.lobby .ban{height:74px}
+body.lobby .ban b{font-size:40px}
+body.lobby .sub{font-size:28px}
+body.lobby .top{top:46px}
+body.lobby .logos img{height:52px}body.lobby .logos .crest{height:66px}
+
+/* PICK & BAN and LOADING: see-through, on top of the game screen */
+body.tr{background:transparent}
+body.tr .bg,body.tr .castle,body.tr .rays,body.tr .dust,body.tr .frame,body.tr .top,body.tr .mu,body.tr .bot{display:none}
+.ovl{display:none;position:absolute;inset:0}
+body.draft .ovl.pb,body.loading .ovl.ld{display:block}
+.tp{position:absolute;display:flex;align-items:center;gap:14px;height:66px;padding:0 26px 0 12px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 82%,#fff) 0,var(--c) 42%,color-mix(in srgb,var(--c) 62%,#000) 100%);
+  border-top:2px solid #fff1bd;border-bottom:3px solid #c9a24a;box-shadow:0 8px 18px rgba(0,0,0,.55);color:var(--tx)}
+.tp img{height:54px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.6))}
+.tp b{font:700 30px Cinzel,serif;letter-spacing:.1em;white-space:nowrap;text-shadow:0 2px 3px rgba(0,0,0,.55)}
+.tp small{display:block;font:700 12px Cinzel,serif;letter-spacing:.24em;opacity:.85}
+.tag{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;padding:8px 34px;white-space:nowrap;
+  background:linear-gradient(180deg,rgba(43,29,16,.94),rgba(20,13,8,.94));border:2px solid #c9a24a;border-radius:4px;box-shadow:0 6px 16px rgba(0,0,0,.6)}
+.tag b{font:700 24px 'Cinzel Decorative',serif;letter-spacing:.14em;background:var(--gilt);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag span{font:700 18px Cinzel,serif;letter-spacing:.12em;color:var(--parch)}
+.tag i{width:10px;height:10px;transform:rotate(45deg);background:var(--gold2)}
+.tag img{height:34px}
+/* pick & ban: team plates in the top corners, title tab at the bottom */
+.pb .tp.a{left:0;top:0;clip-path:polygon(0 0,100% 0,calc(100% - 24px) 100%,0 100%);padding-right:48px}
+.pb .tp.b{right:0;top:0;flex-direction:row-reverse;text-align:right;clip-path:polygon(0 0,100% 0,100% 100%,24px 100%);padding:0 12px 0 48px}
+.pb .tag{bottom:0;border-bottom:0;border-radius:6px 6px 0 0}
+/* loading: one band across the middle (top row = left team, bottom row = right team) */
+.ld .band{position:absolute;left:0;right:0;top:calc(50% - 33px);height:66px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center}
+.ld .tp{position:relative;height:66px}
+.ld .tp.a{justify-self:end;clip-path:polygon(24px 0,100% 0,100% 100%,0 100%);padding-left:40px}
+.ld .tp.b{justify-self:start;flex-direction:row-reverse;clip-path:polygon(0 0,calc(100% - 24px) 0,100% 100%,0 100%);padding:0 40px 0 12px}
+.ld .tp .ar{font:700 22px Cinzel,serif;opacity:.9}
+.ld .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:260px;height:86px;padding:0 26px;background:linear-gradient(180deg,rgba(43,29,16,.96),rgba(20,13,8,.96));border:2px solid #c9a24a;box-shadow:0 8px 20px rgba(0,0,0,.6)}
+.ld .mid b{font:700 46px 'Cinzel Decorative',serif;line-height:1;background:var(--gilt);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ld .mid span{font:700 15px Cinzel,serif;letter-spacing:.14em;color:var(--parch);white-space:nowrap}
+.ld .tag{bottom:26px}
 body.ck{background:repeating-conic-gradient(#3a3a3a 0 25%,#2c2c2c 0 50%) 0 0/40px 40px}
+body.still *,body.still *::before,body.still *::after{animation-play-state:paused!important;transition:none!important}
 </style></head>
 <body>
 <div class="bg"></div>
@@ -96,9 +153,9 @@ body.ck{background:repeating-conic-gradient(#3a3a3a 0 25%,#2c2c2c 0 50%) 0 0/40p
 </div>
 
 <div class="mu">
-  <div class="side a" id="sA"><div class="cw"><img id="cA" alt=""></div><div class="plate" id="pA"></div><div class="pips" id="wA"></div></div>
+  <div class="side a" id="sA"><div class="cw"><img id="cA" alt=""></div><div class="plate" id="pA"></div><div class="pips" id="wA"></div><ul class="lu" id="lA"></ul></div>
   <div class="vs"><b>VS</b><span class="sr" id="sr"></span></div>
-  <div class="side b" id="sB"><div class="cw"><img id="cB" alt=""></div><div class="plate" id="pB"></div><div class="pips" id="wB"></div></div>
+  <div class="side b" id="sB"><div class="cw"><img id="cB" alt=""></div><div class="plate" id="pB"></div><div class="pips" id="wB"></div><ul class="lu" id="lB"></ul></div>
 </div>
 
 <div class="bot">
@@ -107,14 +164,28 @@ body.ck{background:repeating-conic-gradient(#3a3a3a 0 25%,#2c2c2c 0 50%) 0 0/40p
   <div class="sub" id="sub"></div>
 </div>
 
-<script src="config.js?v=20261112121207"></script>
+<div class="ovl pb" id="ovPB">
+  <div class="tp a" id="pbA"><img alt=""><div><small>LEFT SIDE</small><b></b></div></div>
+  <div class="tp b" id="pbB"><img alt=""><div><small>RIGHT SIDE</small><b></b></div></div>
+  <div class="tag"><img src="assets/og/crest-sm.webp" alt=""><b>PICK &amp; BAN</b><i></i><span id="pbS"></span></div>
+</div>
+<div class="ovl ld" id="ovLD">
+  <div class="band">
+    <div class="tp a" id="ldA"><span class="ar">▲</span><img alt=""><b></b></div>
+    <div class="mid"><b>VS</b><span id="ldS"></span></div>
+    <div class="tp b" id="ldB"><span class="ar">▼</span><img alt=""><b></b></div>
+  </div>
+  <div class="tag"><img src="assets/og/crest-sm.webp" alt=""><b>LOADING</b><i></i><span>SPORTFEST 2026 · MOBILE LEGENDS</span></div>
+</div>
+<script src="config.js?v=20261112124022"></script>
 <script>
 // Full-screen OBS scenes. ?scene=wait|pause · manual: ?a=Phoenix&b=Gryffindor&stage=Grand Final&game=1&bo=5&wa=0&wb=0&at=13:00&msg=…
 // No a/b: live mode, follows the tournament (the game being played, else the next one). ?ck=1 checkerboard (preview only).
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+if (Q.get('still')) document.body.classList.add('still');   // download: freeze the animations
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const SCENE = Q.get('scene') === 'pause' ? 'pause' : 'wait', SPORT = Q.get('sport') || 'mlbb';
-document.body.classList.add(SCENE);
+const SCENE = ['pause', 'lobby', 'draft', 'loading'].includes(Q.get('scene')) ? Q.get('scene') : 'wait', SPORT = Q.get('sport') || 'mlbb';
+document.body.classList.add(SCENE); if (SCENE === 'draft' || SCENE === 'loading') { document.body.classList.add('tr'); document.documentElement.style.background = 'transparent'; }   // see-through in OBS
 $('#sti').src = CONFIG.LOGOS.sti; $('#ssc').src = CONFIG.LOGOS.ssc;
 $('#dust').innerHTML = Array.from({ length: 40 }, () => `<i style="left:${Math.random() * 1920}px;animation-duration:${(9 + Math.random() * 9).toFixed(1)}s;animation-delay:${(-Math.random() * 18).toFixed(1)}s"></i>`).join('');
 // overlay house colors (same as the in-game overlay)
@@ -123,7 +194,13 @@ const OV = { Gryffindor: { c: '#9c1a1c', tx: '#fff7e0' }, Slytherin: { c: '#1f5a
 const ov = t => OV[String(houseName(t)).split(' ')[0]] || { c: (houseStyle(t) || {}).primary || '#555', tx: '#fff' };
 const f12 = t => { if (!t) return ''; const [h, m] = String(t).split(':').map(Number); return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`; };
 const stageName = l => String(l || 'Match').replace(/^Round (\d+) · Game \d+$/, 'Group Stage · Round $1');
-let data = null, sig = '', at = Q.get('at') || '';
+let data = null, sig = '', at = Q.get('at') || '', lineups = null;
+const ROLES = ['Gold Lane', 'EXP Lane', 'Mid Lane', 'Jungler', 'Roamer', '6th Man'];
+function lineup(t) {
+  const L = lineups && lineups[t] ? lineups[t].slice().sort((x, y) => ROLES.indexOf(x.role) - ROLES.indexOf(y.role)) : [];
+  if (!L.length) return '<p>Lineup to be announced</p>';
+  return L.map(p => `<li class="${p.role === '6th Man' ? 'sub' : ''}"><small>${esc(p.role === '6th Man' ? 'Substitute' : p.role)}</small><b>${esc(p.ign)}</b>${p.captain ? '<em>CAPTAIN</em>' : '<span></span>'}</li>`).join('');
+}
 
 function paint(m) {
   const s = JSON.stringify(m); if (s === sig) return; sig = s;
@@ -137,7 +214,17 @@ function paint(m) {
     $('#w' + K).innerHTML = need > 1 ? Array.from({ length: need }, (_, i) => `<i class="pip${i < w ? ' w' : ''}"></i>`).join('') : '';
   });
   $('#sr').textContent = m.bestOf > 1 ? `${m.wa} – ${m.wb}` : '';
+  // see-through overlays (pick & ban, loading) + lobby lineups
+  const info = `${stageName(m.label).toUpperCase()} · GAME ${game}${m.bestOf > 1 ? ` · BO${m.bestOf}` : ''}`;
+  [['a', 'A'], ['b', 'B']].forEach(([k, K]) => { const t = m[k], o = ov(t);
+    ['#pb' + K, '#ld' + K].forEach(id => { const el = $(id); el.style.setProperty('--c', o.c); el.style.setProperty('--tx', o.tx);
+      el.querySelector('img').src = ((houseStyle(t) || {}).emblem || 'assets/og/crest-sm.webp').replace('assets/crests/', 'assets/crests/sm/');
+      el.querySelector('b').textContent = String(houseName(t)).toUpperCase(); });
+    $('#l' + K).style.setProperty('--c', o.c); $('#l' + K).innerHTML = lineup(t); });
+  $('#pbS').textContent = info + (m.bestOf > 1 ? ` · ${m.wa}–${m.wb}` : '');
+  $('#ldS').textContent = info;
   $('#stage').innerHTML = `${esc(stageName(m.label).toUpperCase())}<i></i><em>GAME ${game}</em>${m.bestOf > 1 ? `<i></i>BEST OF ${m.bestOf}` : ''}`;
+  if (SCENE === 'lobby') { $('#head').textContent = 'LOBBY'; $('#sub').textContent = Q.get('msg') || 'Players are getting ready'; return; }
   if (SCENE === 'pause') { $('#head').textContent = 'GAME PAUSED'; $('#sub').textContent = Q.get('msg') || 'Technical pause · we’ll be right back'; }
   else { $('#head').textContent = 'UP NEXT'; at = Q.get('at') || (m.status === 'Scheduled' ? m.time : '') || ''; tick(); }
 }
@@ -162,15 +249,18 @@ function current() {
   if (Q.get('match')) return ms.find(m => m.id === Q.get('match'));
   return ms.find(m => m.status === 'Live') || ms.filter(m => m.status === 'Scheduled' && m.a && m.b).sort(t)[0] || null;
 }
+async function getBoard() { try { const r = await (await fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"board"}' })).json(); return r.ok && !r.hidden ? r : null; } catch (e) { return null; } }
 async function load() {
   if (Q.get('a') && Q.get('b')) {
+    if (SCENE === 'lobby' && !lineups) { const r = await getBoard(); if (r) { lineups = (r.lineups || {})[SPORT] || {}; sig = ''; } }
     const bo = [1, 3, 5, 7].includes(+Q.get('bo')) ? +Q.get('bo') : 1;
     return paint({ id: 'manual', label: Q.get('stage') || 'Match', a: Q.get('a'), b: Q.get('b'), bestOf: bo, wa: Math.max(0, +Q.get('wa') || 0), wb: Math.max(0, +Q.get('wb') || 0), game: Math.max(1, +Q.get('game') || 1), status: 'Scheduled' });
   }
+  if (Q.get('demo')) { lineups = { Gryffindor: ROLES.map((r, i) => ({ ign: ['LionHeart', 'RedStorm', 'Spellcaster', 'WildFang', 'Shieldbearer', 'BenchMage'][i], role: r, captain: i === 2 })), Phoenix: ROLES.map((r, i) => ({ ign: ['Ashfall', 'Emberlord', 'Firebrand', 'Cinderwolf', 'Flameguard', 'Spark'][i], role: r, captain: i === 0 })) }; }
   if (Q.get('demo')) return paint({ id: 'd', label: 'Grand Final', a: 'Gryffindor', b: 'Phoenix', bestOf: 5, wa: 2, wb: 1, status: 'Live' });
-  try { const r = await (await fetch(CONFIG.API_URL, { method: 'POST', body: '{"action":"board"}' })).json(); if (r.ok && !r.hidden) { data = r; const m = current(); if (m) paint(m); } } catch (e) {}
+  const r = await getBoard(); if (r) { data = r; const nl = (r.lineups || {})[SPORT] || {}; if (JSON.stringify(nl) !== JSON.stringify(lineups)) { lineups = nl; sig = ''; } const m = current(); if (m) paint(m); }
 }
 if (Q.get('ck')) document.body.classList.add('ck');
-load(); if (!(Q.get('a') && Q.get('b')) && !Q.get('demo')) setInterval(load, 5000);
+load(); if (!Q.get('demo')) setInterval(load, Q.get('a') && Q.get('b') ? 30000 : 5000);   // manual links still refresh the lobby lineups
 </script>
 </body></html>

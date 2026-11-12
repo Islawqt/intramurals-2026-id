@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-  <meta name="app-version" content="20261112121207">
+  <meta name="app-version" content="20261112124022">
 <title>Sportfest 2026 MLBB Overlay</title>
 <meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
@@ -133,6 +133,7 @@ body.gf .pip{width:17px;height:17px}
 body.al .guide{display:flex}
 .guide.s{top:0;left:calc(var(--cx) - var(--cw) / 2);width:var(--cw);height:var(--ch)}
 .guide.m{top:0;left:0;width:var(--mw);height:var(--mh)}
+body.still *,body.still *::before,body.still *::after{animation-play-state:paused!important;transition:none!important}
 </style></head>
 <body>
 <!-- minimap portrait frame -->
@@ -178,11 +179,12 @@ body.al .guide{display:flex}
 </div></div>
 <div class="guide s">Game stat bar goes inside this box</div><div class="guide m">Game minimap</div>
 
-<script src="config.js?v=20261112121207"></script>
+<script src="config.js?v=20261112124022"></script>
 <script>
 // Sportfest 2026 MLBB broadcast overlay (OBS Browser Source, 1920×1080). Automatic from the tournament data: crests, house names + colors, series, match + game.
 // URL: ?demo=1 sample · ?ck=1 checkerboard · ?bg=<img> preview background · ?align=1 guides · ?cx ?cw ?ch ?mw ?mh · ?match=<id>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s), R = document.documentElement.style;
+if (Q.get('still')) document.body.classList.add('still');   // download: freeze the animations
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const H = t => houseStyle(t) || {}, crest = t => (H(t).emblem || 'assets/og/crest-web.webp').replace('assets/crests/', 'assets/crests/sm/');
 ['cx', 'cw', 'ch', 'mw', 'mh'].forEach(k => { const v = Number(Q.get(k)); if (v > 0) R.setProperty('--' + k, v + 'px'); });

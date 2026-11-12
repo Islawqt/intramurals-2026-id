@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
-  <meta name="app-version" content="20261112121207"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="app-version" content="20261112124022"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Custom Overlay · Sportfest 2026</title>
 <meta name="robots" content="noindex">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
@@ -51,7 +51,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
 <main>
   <section class="card">
     <h2>SCREEN</h2>
-    <div class="scr" id="scr"><button type="button" data-s="game" class="on">In-game overlay<small>see-through, on top of the game</small></button><button type="button" data-s="wait">Waiting screen<small>full screen, before a game</small></button><button type="button" data-s="pause">Pause screen<small>full screen, game paused</small></button></div>
+    <div class="scr" id="scr"><button type="button" data-s="game" class="on">In-game overlay<small>see-through, on top of the game</small></button><button type="button" data-s="wait">Waiting screen<small>full screen, before a game</small></button><button type="button" data-s="pause">Pause screen<small>full screen, game paused</small></button><button type="button" data-s="lobby">Lobby<small>full screen, both lineups (IGN + role)</small></button><button type="button" data-s="draft">Pick &amp; Ban<small>see-through, on top of the draft screen</small></button><button type="button" data-s="loading">Loading<small>see-through, on top of the loading screen</small></button></div>
     <div id="sceneOpts" hidden>
       <div class="row"><label id="atWrap">Start time (countdown)<input id="at" type="time"></label><label>Message (optional)<input id="smsg" maxlength="60" placeholder="e.g. Technical pause"></label></div>
     </div>
@@ -85,6 +85,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
     </details>
     <button class="btn" id="copy" type="button">Copy OBS link</button>
     <button class="btn ghost" id="open" type="button">Open full size</button>
+    <button class="btn ghost" id="dl" type="button">⬇ Download image (PNG)</button>
     <div class="link" id="link"></div>
     <p class="msg" id="msg"></p>
     <details><summary>LIVE MODE (no typing during the event)</summary>
@@ -106,7 +107,7 @@ details{margin-top:8px}summary{cursor:pointer;font:700 12px Cinzel,serif;letter-
     </div>
   </section>
 </main>
-<script src="config.js?v=20261112121207"></script>
+<script src="config.js?v=20261112124022"></script>
 <script>
 const $ = s => document.querySelector(s);
 const HOUSES = Object.keys(CONFIG.HOUSES);                       // full names, e.g. "Phoenix Legion"
@@ -116,13 +117,14 @@ fill($('#a'), 'Phoenix Legion'); fill($('#b'), 'Gryffindor Titans');
 $('#stages').innerHTML = STAGES.map(s => `<button type="button">${s}</button>`).join('');
 $('#stages').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { $('#stage').value = b.textContent; $('#bo').value = /Grand Final/.test(b.textContent) ? 5 : /^(UB|LB) /.test(b.textContent) ? 3 : 1; upd(); }));
 let scr = 'game';
-const BASES = { game: new URL('overlay.html', location.href).href, wait: new URL('scene.html', location.href).href, pause: new URL('scene.html', location.href).href };
+const SCENE_URL = new URL('scene.html', location.href).href;
+const BASES = { game: new URL('overlay.html', location.href).href, wait: SCENE_URL, pause: SCENE_URL, lobby: SCENE_URL, draft: SCENE_URL, loading: SCENE_URL };
 let base = BASES.game;
 document.querySelectorAll('#scr [data-s]').forEach(b => b.addEventListener('click', () => {
   scr = b.dataset.s; base = BASES[scr];
   document.querySelectorAll('#scr [data-s]').forEach(x => x.classList.toggle('on', x === b));
-  $('#sceneOpts').hidden = scr === 'game'; $('#atWrap').style.display = scr === 'wait' ? '' : 'none';
-  $('#smsg').placeholder = scr === 'pause' ? 'e.g. Technical pause · back in 5 minutes' : 'e.g. Players are drafting';
+  $('#sceneOpts').hidden = !['wait', 'pause', 'lobby'].includes(scr); $('#atWrap').style.display = scr === 'wait' ? '' : 'none';
+  $('#smsg').placeholder = scr === 'pause' ? 'e.g. Technical pause · back in 5 minutes' : scr === 'lobby' ? 'e.g. Players are getting ready' : 'e.g. Players are drafting';
   $('#cut').style.display = scr === 'game' ? '' : 'none';
   liveLink(); upd(); }));
 function params() {
@@ -175,5 +177,25 @@ document.querySelectorAll('[data-bg]').forEach(b => b.addEventListener('click', 
 // scale the 1920×1080 preview to fit
 const fit = () => { const w = $('#screen').clientWidth; $('#frame').style.transform = `scale(${w / 1920})`; };
 new ResizeObserver(fit).observe($('#screen')); fit(); upd();
+</script>
+<script src="assets/vendor/html-to-image.js?v=20261112124022"></script>
+<script>
+// Download the current overlay/screen as a 1920×1080 PNG (see-through ones keep a transparent background), for putting in OBS by hand.
+$('#dl').addEventListener('click', async () => {
+  const b = $('#dl'), url = $('#link').textContent; if (!url || /different/.test($('#msg').textContent)) return;
+  b.disabled = true; b.textContent = 'Making the image…';
+  const f = document.createElement('iframe');
+  f.style.cssText = 'position:fixed;left:-3000px;top:0;width:1920px;height:1080px;border:0';
+  f.src = url + '&still=1'; document.body.appendChild(f);
+  try {
+    await new Promise(r => f.onload = r);
+    await f.contentDocument.fonts.ready; await new Promise(r => setTimeout(r, 1500));     // crests, logos, house lineups
+    const d = f.contentDocument, png = await htmlToImage.toPng(d.documentElement, { width: 1920, height: 1080, pixelRatio: 1, backgroundColor: undefined });
+    const name = (scr === 'game' ? 'overlay' : scr) + '-' + [$('#a').value, $('#b').value].map(x => x.split(' ')[0]).join('-vs-') + '-' + ($('#stage').value || 'match').replace(/[^\w]+/g, '-') + '.png';
+    const a = document.createElement('a'); a.href = png; a.download = name.toLowerCase(); a.click();
+    $('#msg').style.color = ''; $('#msg').textContent = 'Image downloaded. In OBS: Sources → + → Image.';
+  } catch (e) { $('#msg').style.color = '#9b2c2c'; $('#msg').textContent = 'Could not make the image. Try again, or take a screenshot of "Open full size".'; }
+  finally { f.remove(); b.disabled = false; b.textContent = '⬇ Download image (PNG)'; }
+});
 </script>
 </body></html>
