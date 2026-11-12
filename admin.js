@@ -35,7 +35,7 @@ async function api(payload) {
 }
 
 function lock(msg) {
-  try { sessionStorage.removeItem('im26_admin_role'); } catch {}
+  try { sessionStorage.removeItem('im26_admin_role'); const o = JSON.parse(localStorage.getItem(DATA_STORE)) || {}; delete o.attLast; localStorage.setItem(DATA_STORE, JSON.stringify(o)); } catch {}   // the student list does not stay on a locked device
   key = null; setKey(null);
   show('keyScreen');
   setMsg($('#keyMsg'), msg || '', msg ? 'error' : '');
@@ -732,6 +732,8 @@ async function loadAtt(quiet) {
     if (d) { const o = document.createElement('option'); o.value = d; o.textContent = fmtDate(d); $('#attDate').appendChild(o); $('#attDate').value = d; }
   }
   const date = $('#attDate').value, team = $('#attTeam').value;
+  const ck = date + '|' + team, last = cacheGet('attLast'), hit = last && last.k === ck ? last.r : null;   // only the last list is kept (size)
+  if (!quiet && hit && hit.items) { attData = hit; attSig = JSON.stringify(hit.items) + hit.date + hit.team; attDays(hit); renderAtt(); quiet = true; }   // show the last copy at once, refresh behind it
   if (!quiet) {
     $('#attList').innerHTML = '<div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line short"></div>';
     $('#attSum').textContent = 'Loading…';
@@ -741,7 +743,8 @@ async function loadAtt(quiet) {
     const r = await api({ action: 'adminAttendance', date, team });
     if (!r.ok) { setMsg($('#attMsg'), r.error, 'error'); return; }
     if (r.date !== $('#attDate').value && $('#attDate').value) { /* changed while loading */ }
-    attLast = Date.now();
+    attLast = Date.now(); cacheSet('attLast', { k: ck, r });
+    if (r.book) { $('#attBook').href = r.book; $('#attBook').hidden = false; }
     const sig = JSON.stringify(r.items) + r.date + r.team;
     if (quiet && sig === attSig) return;                       // live refresh with no new scans: keep the list as it is
     attSig = sig; attData = r;
@@ -753,6 +756,14 @@ async function loadAtt(quiet) {
   } finally { attBusy = false; }
 }
 $('#attDate').addEventListener('change', () => loadAtt());
+$('#attAbs').addEventListener('click', async () => {
+  const b = $('#attAbs'); busyBtn(b, true);
+  try { const r = await api({ action: 'adminAbsents' });
+    setMsg($('#attMsg'), r.ok ? (r.days ? `Absents tab updated: ${r.absent} absent over ${r.days} event day${r.days > 1 ? 's' : ''}.` : 'No event day yet.') : r.error, r.ok ? 'ok' : 'error');
+    if (r.url) { $('#attBook').href = r.url; $('#attBook').hidden = false; }
+  } catch (e) { if (e.message !== 'unauthorized') setMsg($('#attMsg'), 'Failed. Check your internet.', 'error'); }
+  finally { busyBtn(b, false); }
+});
 $('#attTeam').addEventListener('change', () => loadAtt());
 let attT = 0; $('#attSearch').addEventListener('input', () => { clearTimeout(attT); attT = setTimeout(renderAtt, 150); });
 document.querySelectorAll('.att-chips .chip-btn').forEach(c => c.addEventListener('click', () => { attFilter = c.dataset.f; renderAtt(); }));
@@ -921,7 +932,7 @@ async function loadSports(keep) {
 }
 // the sports and rosters live in their own Google Sheets files (keeps the main file small)
 function paintBooks() {
-  const b = SP.books || {}, L = [b.sports && `<a href="${esc(b.sports)}" target="_blank" rel="noopener">Sports &amp; games</a>`, b.rosters && `<a href="${esc(b.rosters)}" target="_blank" rel="noopener">Rosters &amp; registration</a>`].filter(Boolean);
+  const b = SP.books || {}, L = [b.sports && `<a href="${esc(b.sports)}" target="_blank" rel="noopener">Sports &amp; games</a>`, b.rosters && `<a href="${esc(b.rosters)}" target="_blank" rel="noopener">Rosters &amp; registration</a>`, b.attendance && `<a href="${esc(b.attendance)}" target="_blank" rel="noopener">Attendance</a>`].filter(Boolean);
   $('#spBooks').hidden = !L.length; $('#spBooks').innerHTML = L.length ? 'Google Sheets files: ' + L.join(' · ') : '';
 }
 // public scoreboard on/off
