@@ -100,13 +100,38 @@ function openMatch(id) {
     : T === 'basketball' ? 'Type the final points after the last quarter (or overtime). No ties.'
     : `Best of ${cur.bestOf}: the winner has ${need()}. Example: ${need()} and ${need() - 1}.`;
   $('#fConfirm').hidden = true; $('#fForm').hidden = false;
-  paintStart(); setMsg($('#fMsg'), '');
+  paintStart(); paintSeries(); setMsg($('#fMsg'), '');
   show('finalScreen');
 }
 function paintStart() {
   const live = cur.status === 'Live';
   $('#fLive').innerHTML = live ? '<span class="sk-pill">LIVE</span> Shown as live on the scoreboard.' : 'Not started yet.';
   $('#startBtn').hidden = live; $('#stopBtn').hidden = !live;
+}
+// series in progress (Bo3/Bo5): games or sets won so far → live on the stream overlay and scoreboard
+const serOn = () => !isBoard(cur) && sport.scoreType !== 'basketball' && cur.bestOf > 1;
+function paintSeries() {
+  $('#fSer').hidden = !serOn(); if (!serOn()) return;
+  const u = sport.scoreType === 'games' ? 'game' : 'set', n = cur.wa + cur.wb + 1;
+  $('#serT').textContent = `Series ${short(cur.a)} ${cur.wa} – ${cur.wb} ${short(cur.b)} · ${u} ${Math.min(n, cur.bestOf)} of up to ${cur.bestOf}`;
+  $('#serG').innerHTML = ['a', 'b'].map(sd => { const h = houseStyle(cur[sd]), w = sd === 'a' ? cur.wa : cur.wb;
+    return `<div class="sk-ser-t" style="--c:${h.primary};--t:${h.text || '#fff'}"><b>${short(cur[sd])}</b><span>${w}</span>
+      <button type="button" class="btn" data-w="${sd}"><span>Won ${u} ${n}</span></button>${w ? `<button type="button" class="sk-minus" data-u="${sd}">− undo</button>` : ''}</div>`; }).join('');
+  $('#serG').querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => serWin(b.dataset.w, 1, b)));
+  $('#serG').querySelectorAll('[data-u]').forEach(b => b.addEventListener('click', () => serWin(b.dataset.u, -1, b)));
+}
+async function serWin(sd, d, b) {
+  const wa = cur.wa + (sd === 'a' ? d : 0), wb = cur.wb + (sd === 'b' ? d : 0);
+  if (wa >= need() || wb >= need()) {                // the winning game: fill in the final and confirm
+    $('#in_a').value = wa; $('#in_b').value = wb; $('#fForm').requestSubmit(); return;
+  }
+  if (b.disabled) return; b.disabled = true; setMsg($('#fMsg'), 'Saving…');
+  try {
+    const r = await api({ action: 'scoreSeries', token: sess.token, id: cur.id, wa, wb });
+    if (expired(r)) return;
+    if (!r.ok) return setMsg($('#fMsg'), r.error, 'error');
+    Object.assign(cur, r.match); listSig = ''; paintStart(); paintSeries(); setMsg($('#fMsg'), `Series ${cur.wa}–${cur.wb} is on the overlay.`, 'ok');
+  } catch (e) { setMsg($('#fMsg'), 'No connection. Try again.', 'error'); } finally { b.disabled = false; }
 }
 async function setLive(stop) {
   const b = stop ? $('#stopBtn') : $('#startBtn'); if (b.disabled) return; b.disabled = true; setMsg($('#fMsg'), 'Saving…');

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="app-version" content="20261112130613">
+  <meta name="app-version" content="20261112131156">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#140e09">
@@ -27,16 +27,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="manifest" href="scorer.webmanifest?v=20261112130613">
+  <link rel="manifest" href="scorer.webmanifest?v=20261112131156">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/app/scanner-192.png">
   <link rel="apple-touch-icon" href="assets/app/scanner-180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Scorer">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="style.css?v=20261112130613">
-  <link rel="stylesheet" href="sports.css?v=20261112130613">
-  <script src="update.js?v=20261112130613" data-resume></script>
+  <link rel="stylesheet" href="style.css?v=20261112131156">
+  <link rel="stylesheet" href="sports.css?v=20261112131156">
+  <script src="update.js?v=20261112131156" data-resume></script>
 </head>
 <body class="sk-page">
   <div class="sky" aria-hidden="true"></div>
@@ -69,6 +69,11 @@
       <p class="sk-ev" id="fEv"></p>
       <p class="sk-series" id="fWhen"></p>
       <div class="sk-start"><p id="fLive"></p><button id="startBtn" class="btn" type="button"><span>Start game (LIVE)</span></button><button id="stopBtn" class="btn ghost small" type="button" hidden>Not started yet</button></div>
+      <div class="sk-ser" id="fSer" hidden>
+        <p class="adm-label" id="serT"></p>
+        <div class="sk-ser-g" id="serG"></div>
+        <p class="hint">Tap after each game so the stream overlay and scoreboard follow. The winning game opens the final score.</p>
+      </div>
       <form id="fForm">
         <div class="sk-board" id="fBoard"></div>
         <label class="sk-sets" id="fSetsRow">Set scores (optional)<input id="fSets" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 25-20, 22-25, 15-10"></label>
@@ -85,9 +90,9 @@
       <div class="row"><button id="fBack" class="btn ghost" type="button">Back to list</button></div>
     </section>
   </main>
-  <script src="config.js?v=20261112130613"></script>
-  <script src="codeboxes.js?v=20261112130613"></script>
-  <script src="scorer.js?v=20261112130613"></script>
-  <script src="pwa.js?v=20261112130613"></script>
+  <script src="config.js?v=20261112131156"></script>
+  <script src="codeboxes.js?v=20261112131156"></script>
+  <script src="scorer.js?v=20261112131156"></script>
+  <script src="pwa.js?v=20261112131156"></script>
 </body>
 </html>

@@ -145,8 +145,8 @@ function matchCard(m, live) {
   if (solo(m)) return `<div class="sb-match panel"><div class="sb-mh"><span>${esc(sportName(m.sport))}</span>${live ? '<span class="sb-tag"><i></i>LIVE</span>' : `<span>${fdate(m.date)} · ${f12(m.time)}</span>`}</div>
   <div class="sb-mr solo"><div class="sb-side"><img src="${crest(m.a)}" alt="">${short(m.a)}</div><div class="sb-score"><i>${live ? 'playing now' : 'up next'}</i></div></div><div class="sb-mf">${esc(m.venue || '')}</div></div>`;
   const unit = /volley/i.test(sportName(m.sport)) ? 'Set' : 'Game';
-  const per = m.bestOf > 1 ? `Best of ${m.bestOf} · in progress` : 'In progress';
-  const sa = live ? m.sa : '', sb = live ? m.sb : '', run = live && (sa || sb);
+  const ser = m.bestOf > 1, sa = live ? (ser ? m.wa : m.sa) : '', sb = live ? (ser ? m.wb : m.sb) : '', run = live && (sa || sb);
+  const per = ser ? `${unit} ${Math.min(m.wa + m.wb + 1, m.bestOf)} · best of ${m.bestOf}` : 'In progress';
   return `<div class="sb-match panel${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><div class="sb-mh"><span>${esc(sportName(m.sport))} · ${esc(m.label)}</span>${live ? '<span class="sb-tag"><i></i>LIVE</span>' : `<span>${fdate(m.date)} · ${f12(m.time)}</span>`}</div>
   <div class="sb-mr"><div class="sb-side"><img src="${crest(m.a)}" alt="">${short(m.a)}</div>
   <div class="sb-score">${run ? `<span id="s-${m.id}a" class="${sa > sb ? 'lead' : ''}">${sa}</span><i>vs</i><span id="s-${m.id}b" class="${sb > sa ? 'lead' : ''}">${sb}</span>` : '<i>vs</i>'}</div>

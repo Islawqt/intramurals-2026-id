@@ -308,3 +308,10 @@ body.demo::after{content:'SAMPLE DATA';position:fixed;top:14px;right:-38px;z-ind
 .sb-mr.solo{grid-template-columns:1fr auto}
 .lb-t td:nth-child(3){font:700 17px Cinzel,serif}
 .rr-t tr.live td:nth-child(3){color:#ff8a7a}
+.sk-ser{margin:0 0 14px;padding:10px;border:1.5px solid rgba(90,60,30,.35);border-radius:12px;background:rgba(255,250,235,.4);text-align:center}
+.sk-ser-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:8px 0}
+.sk-ser-t{border-radius:12px;padding:8px;background:var(--c);color:var(--t)}
+.sk-ser-t b{display:block;font:700 14px Cinzel,serif}
+.sk-ser-t>span{display:block;font:700 40px/1.1 'Cinzel Decorative',serif}
+.sk-ser-t .btn{width:100%;margin-top:6px}
+.sk-ser-t .btn span{font-size:14px}
