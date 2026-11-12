@@ -916,8 +916,13 @@ async function loadSports(keep) {
     if (!keep) setMsg($('#spMsg'), '');
     if (sig === spSig) return;                                 // nothing new: leave the page as it is (no flicker, no lost scroll)
     spSig = sig; SP = r; cacheSet('sports', r);
-    renderSports(); paintBoardSw(); if (spOpen) renderGames(); if ($('#regBox').open && keep) loadReg();
+    renderSports(); paintBoardSw(); paintBooks(); if (spOpen) renderGames(); if ($('#regBox').open && keep) loadReg();
   } catch (e) { if (e.message !== 'unauthorized') setMsg($('#spMsg'), 'Could not load. Check your internet.', 'error'); }
+}
+// the sports and rosters live in their own Google Sheets files (keeps the main file small)
+function paintBooks() {
+  const b = SP.books || {}, L = [b.sports && `<a href="${esc(b.sports)}" target="_blank" rel="noopener">Sports &amp; games</a>`, b.rosters && `<a href="${esc(b.rosters)}" target="_blank" rel="noopener">Rosters &amp; registration</a>`].filter(Boolean);
+  $('#spBooks').hidden = !L.length; $('#spBooks').innerHTML = L.length ? 'Google Sheets files: ' + L.join(' · ') : '';
 }
 // public scoreboard on/off
 function paintBoardSw() {
@@ -982,12 +987,12 @@ function renderSports() {
   SP.sports.forEach(s => {
     const ms = SP.matches.filter(m => m.sport === s.id), done = ms.filter(m => m.status === 'Final').length, live = ms.some(m => m.status === 'Live');
     const d = document.createElement('div'); d.className = 'sp-card' + (spOpen === s.id ? ' open' : '');
-    d.innerHTML = `<div><b></b> <span class="sp-st"></span><small></small></div><div class="acc-btns"><button type="button" class="btn small ghostish" data-e>Edit</button><button type="button" class="btn small ghostish" data-p>Players</button><button type="button" class="btn small" data-g>Bracket &amp; games</button></div>`;
+    d.innerHTML = `<div><b></b> <span class="sp-st"></span><small></small></div><div class="acc-btns"><button type="button" class="btn small ghostish" data-e>Edit</button><button type="button" class="btn small ghostish" data-p>Players</button><button type="button" class="btn small" data-g>${s.format === 'leaderboard' ? 'Scores' : 'Bracket &amp; games'}</button></div>`;
     d.querySelector('b').textContent = s.name;
     const st = d.querySelector('.sp-st'); st.textContent = live ? 'LIVE' : s.status === 'Done' ? 'DONE' : ms.length ? 'READY' : 'NO BRACKET'; st.className = 'sp-st ' + (live ? 'live' : s.status === 'Done' ? 'done' : ms.length ? 'ready' : '');
-    d.querySelector('small').textContent = `${({ playin: 'Play-ins + double elim', double: 'Double elim', rrplayoffs: 'Round robin + MPL playoffs' })[s.format] || 'Single elim'} · Bo${s.bestOf}${s.format === 'rrplayoffs' && s.playoffBestOf !== s.bestOf ? ' · playoffs Bo' + s.playoffBestOf : ''}${s.finalBestOf !== s.bestOf ? ' · final Bo' + s.finalBestOf : ''} · ${s.teams.length} teams · ${s.venue || 'no venue'}${ms.length ? ` · ${done} of ${ms.filter(m => m.a || m.b || m.status !== 'Scheduled').length || ms.length} games done` : ''}`;
+    d.querySelector('small').textContent = `${({ playin: 'Play-ins + double elim', double: 'Double elim', rrplayoffs: 'Round robin + MPL playoffs', leaderboard: 'Leaderboard (highest score)' })[s.format] || 'Single elim'}${s.format === 'leaderboard' ? '' : ' · Bo' + s.bestOf}${s.format === 'rrplayoffs' && s.playoffBestOf !== s.bestOf ? ' · playoffs Bo' + s.playoffBestOf : ''}${s.finalBestOf !== s.bestOf && s.format !== 'leaderboard' ? ' · final Bo' + s.finalBestOf : ''} · ${s.teams.length} teams · ${s.venue || 'no venue'}${ms.length ? ` · ${done} of ${ms.filter(m => m.a || m.b || m.status !== 'Scheduled').length || ms.length} games done` : ''}`;
     const sc = (cacheGet('scanners') || []).filter(a => a.team === SCORER && a.active && a.sport === s.id).map(a => a.staff);
-    d.querySelector('small').textContent += ` · Scorers: ${sc.length ? sc.join(' & ') : 'none yet'}${sc.length === 1 ? ' (needs 2)' : ''}`;
+    d.querySelector('small').textContent += ` · Scorers: ${sc.length ? sc.join(' & ') : 'none yet'}`;
     d.querySelector('[data-e]').addEventListener('click', () => openSportForm(s));
     d.querySelector('[data-p]').addEventListener('click', () => { spPl = spPl === s.id ? null : s.id; spOpen = null; $('#spForm').hidden = true; $('#spGames').hidden = true; renderSports(); openPlayers(); });
     d.querySelector('[data-g]').addEventListener('click', () => { spOpen = spOpen === s.id ? null : s.id; spPl = null; $('#spPlayers').hidden = true; $('#spForm').hidden = true; renderSports(); renderGames(); });
@@ -1026,7 +1031,8 @@ const PRESETS = {
   volleyball:  { type: 'rally', t: 25, d: 15, c: 0, bo: 3, fbo: 3, note: 'FIVB: every rally is a point. Set to 25, win by 2; deciding set to 15, win by 2.' },
   badminton:   { type: 'rally', t: 21, d: 21, c: 30, bo: 3, fbo: 3, note: 'BWF: every rally is a point. Game to 21, win by 2; at 29-all the next point wins (30). Best of 3.' },
   pickleball:  { type: 'pickleball', t: 11, d: 11, c: 0, bo: 3, fbo: 3, mode: 'doubles', note: 'Only the serving side scores. Game to 11, win by 2. Doubles score is called serving-receiving-server (start 0-0-2).' },
-  mlbb:        { type: 'games', bo: 1, pbo: 3, fbo: 5, note: 'Group stage and play-ins Bo1 · playoffs Bo3 · Grand Final Bo5. Tap who won each game.' },
+  mlbb:        { type: 'games', bo: 1, pbo: 3, fbo: 5, note: 'Group stage and play-ins Bo1 · playoffs Bo3 · Grand Final Bo5. The final score is games won (e.g. 2–1).' },
+  blockblast:  { type: 'highscore', bo: 1, fbo: 1, format: 'leaderboard', note: 'Each house sends its highest score. Highest score is 1st, and so on down. A tie goes to the house that sent its score first.' },
   tabletennis: { type: 'rally', t: 11, d: 11, c: 0, bo: 5, fbo: 5, note: 'Every rally is a point. Game to 11, win by 2. Check your league for the number of games.' },
   sepak:       { type: 'rally', t: 21, d: 21, c: 0, bo: 3, fbo: 3, note: 'Every rally is a point. Check your league for the set length and any cap.' },
   chess:       { type: 'games', bo: 1, fbo: 3, note: 'Tap who won each game.' },
@@ -1035,6 +1041,7 @@ const PRESETS = {
 function guessPreset(s) {
   const r = s.rules || {}, id = String(s.id) + ' ' + String(s.name).toLowerCase();
   if (s.scoreType === 'basketball') return 'basketball';
+  if (s.scoreType === 'highscore') return 'blockblast';
   if (s.scoreType === 'pickleball') return 'pickleball';
   if (s.scoreType === 'games') return /legend|mlbb/.test(id) ? 'mlbb' : /chess/.test(id) ? 'chess' : 'winloss';
   if (/volley/.test(id)) return 'volleyball'; if (/badminton/.test(id)) return 'badminton'; if (/table/.test(id)) return 'tabletennis'; if (/sepak|takraw/.test(id)) return 'sepak';
@@ -1046,7 +1053,9 @@ function applyPreset() {
   if (P.t) { $('#spTarget').value = P.t; $('#spDeciding').value = P.d; $('#spCap').value = P.c; }
   if (P.mode) $('#spMode').value = P.mode;
   $('#spBo').value = P.bo; $('#spFbo').value = P.fbo; if (P.pbo) $('#spPbo').value = P.pbo;
-  if (!$('#spName').value.trim() || Object.keys(PRESETS).some(k => $('#spName').value === ($('#spPreset').querySelector(`option[value="${k}"]`) || {}).textContent)) $('#spName').value = ({ basketball: 'Basketball', volleyball: 'Volleyball', badminton: 'Badminton', pickleball: 'Pickleball', mlbb: 'Mobile Legends', tabletennis: 'Table Tennis', sepak: 'Sepak Takraw', chess: 'Chess' })[$('#spPreset').value] || $('#spName').value;
+  if (P.format) $('#spFormat').value = P.format; else if ($('#spFormat').value === 'leaderboard') $('#spFormat').value = 'single';
+  pboShow();
+  if (!$('#spName').value.trim() || Object.keys(PRESETS).some(k => $('#spName').value === ($('#spPreset').querySelector(`option[value="${k}"]`) || {}).textContent)) $('#spName').value = ({ basketball: 'Basketball', volleyball: 'Volleyball', badminton: 'Badminton', pickleball: 'Pickleball', mlbb: 'Mobile Legends', blockblast: 'Block Blast', tabletennis: 'Table Tennis', sepak: 'Sepak Takraw', chess: 'Chess' })[$('#spPreset').value] || $('#spName').value;
   showRules();
 }
 // round robin + playoffs: three best-of settings (group + play-ins / playoffs / grand final)
@@ -1055,6 +1064,9 @@ function pboShow() {
   $('#spPboWrap').style.display = rr ? '' : 'none';
   $('#spBo').parentNode.firstChild.textContent = rr ? 'Group + play-ins best of' : 'Best of';
   $('#spFbo').parentNode.firstChild.textContent = rr ? 'Grand Final best of' : 'Final best of';
+  const lb = $('#spFormat').value === 'leaderboard';
+  $('#spBo').parentNode.style.display = $('#spFbo').parentNode.style.display = lb ? 'none' : '';
+  $('#spThird').parentNode.style.display = lb ? 'none' : '';
 }
 $('#spFormat').addEventListener('change', pboShow);
 function showRules() {
@@ -1092,7 +1104,7 @@ function renderGames() {
   const s = SP.sports.find(x => x.id === spOpen), box = $('#spGames');
   if (!s) { box.hidden = true; return; }
   box.hidden = false;
-  $('#spGTitle').textContent = s.name + ': bracket & games';
+  $('#spGTitle').textContent = s.name + (s.format === 'leaderboard' ? ': scores' : ': bracket & games');
   const ms = SP.matches.filter(m => m.sport === s.id).sort((a, b) => String(a.date + a.time).localeCompare(String(b.date + b.time)) || a.round - b.round);
   const days = (sched.days || []).map(d => d.date);
   $('#gDay').innerHTML = (days.length ? days : [serverNow ? serverNow.date : '']).map(d => `<option value="${d}">${d ? fmtDate(d) : 'Today'}</option>`).join('');
@@ -1103,14 +1115,17 @@ function renderGames() {
     : `Games are set back to back on ${s.venue || 'one court'}. Change any date or time below.`);
   renderGroup(s, ms);
   // a bracket already made: show it to edit (Remake is tucked away); no bracket yet: show the maker
-  const has = ms.length > 0;
+  const has = ms.length > 0, lb = s.format === 'leaderboard';
+  if (lb) gView = 'ls';
   $('#gBar').hidden = !has; $('#gGen').hidden = has && !genOpen;
-  $('#gRemake').textContent = genOpen ? 'Hide remake' : 'Remake bracket…';
+  $('#gBar .g-seg').hidden = lb;
+  $('#gRemake').textContent = genOpen ? 'Hide remake' : lb ? 'Start over…' : 'Remake bracket…';
   document.querySelectorAll('#gBar [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === gView));
   $('#gBr').hidden = !has || gView !== 'br'; $('#gList').hidden = has && gView === 'br';
   if (has && gView === 'br') drawAdminBracket(s, ms);
-  $('#gGo').querySelector('span').textContent = ms.length ? 'Remake bracket' : 'Make bracket';
+  $('#gGo').querySelector('span').textContent = lb ? (ms.length ? 'Start over (clears scores)' : 'Make score list') : ms.length ? 'Remake bracket' : 'Make bracket';
   const L = $('#gList'); L.innerHTML = '';
+  if (lb) return drawBoardScores(s, ms, L);
   ms.forEach(m => {
     const row = document.createElement('div'); row.className = 'g-row' + (m.status === 'Final' ? ' fin' : m.status === 'Live' ? ' live' : '');
     const score = m.status === 'Final' ? `${shortT(m.winner)} won${m.bestOf > 1 ? ` ${Math.max(m.wa, m.wb)}–${Math.min(m.wa, m.wb)}` : (m.games ? ' · ' + m.games.split(',').pop() : '')}` : m.status === 'Live' ? `LIVE ${m.bestOf > 1 ? m.wa + '–' + m.wb + ' · ' : ''}${m.sa}–${m.sb}` : '';
@@ -1123,12 +1138,7 @@ function renderGames() {
     gd.addEventListener('change', saveWhen); gt.addEventListener('change', saveWhen);
     const acts = row.querySelector('.acc-btns');
     const mk = (txt, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = txt; b.addEventListener('click', () => fn(b)); acts.appendChild(b); };
-    if (m.status !== 'Final' && m.a && m.b) ['a', 'b'].forEach(side => mk(`${shortT(m[side])} won`, 'ghostish', async b => {
-      if (!confirmTwice('win:' + m.id + side, `Tap again: ${shortT(m[side])} wins ${m.label} (moves on in the bracket)`, $('#gMsg'))) return;
-      busyBtn(b, true);
-      const r = await api({ action: 'adminMatchSave', id: m.id, fields: { winner: side.toUpperCase(), wa: side === 'a' ? Math.floor(m.bestOf / 2) + 1 : m.wa, wb: side === 'b' ? Math.floor(m.bestOf / 2) + 1 : m.wb } }).catch(() => ({ ok: false, error: 'Failed.' }));
-      setMsg($('#gMsg'), r.ok ? `${m.label}: ${shortT(m[side])} won.` : r.error, r.ok ? 'ok' : 'error'); loadSports(true);
-    }));
+    if (m.status !== 'Final' && m.a && m.b) mk('Final score', 'ghostish', () => openEd(m.id));
     if (m.status !== 'Scheduled') mk('Reset', 'reset', async b => {
       if (!confirmTwice('rs:' + m.id, `Tap Reset again: ${m.label} goes back to not played`, $('#gMsg'))) return;
       busyBtn(b, true);
@@ -1139,12 +1149,41 @@ function renderGames() {
   });
   if (!ms.length) L.innerHTML = '<p class="adm-hint">No bracket yet. Pick the options above and tap Make bracket.</p>';
 }
+// leaderboard (Block Blast): one score per house; ranks follow once every house has one
+function drawBoardScores(s, ms, L) {
+  if (!ms.length) { L.innerHTML = '<p class="adm-hint">No score list yet. Tap Make score list.</p>'; return; }
+  const fin = ms.filter(m => m.status === 'Final'), all = fin.length === ms.length;
+  const rk = {}; fin.slice().sort((a, b) => b.sa - a.sa || String(a.updated).localeCompare(String(b.updated))).forEach((m, i) => rk[m.id] = i + 1);
+  L.innerHTML = `<p class="adm-hint">${all ? 'All scores in: ranks and points are final.' : `${fin.length} of ${ms.length} houses have a score. Ranks count once all are in.`}</p>`;
+  ms.slice().sort((a, b) => (rk[a.id] || 99) - (rk[b.id] || 99) || a.order - b.order).forEach(m => {
+    const row = document.createElement('div'); row.className = 'g-row lb-row' + (m.status === 'Final' ? ' fin' : m.status === 'Live' ? ' live' : '');
+    row.innerHTML = `<div class="g-info"><b></b><small></small></div><div class="g-when"><input type="number" min="0" inputmode="numeric" class="lb-in" aria-label="Score" placeholder="Score"></div><div class="acc-btns"></div>`;
+    row.querySelector('b').textContent = (rk[m.id] ? '#' + rk[m.id] + ' ' : '') + houseName(m.a);
+    row.querySelector('small').textContent = m.status === 'Final' ? `Score ${Number(m.sa).toLocaleString()}${all ? ` · ${(s.points || [])[rk[m.id] - 1] || 0} pts` : ''}` : m.status === 'Live' ? 'Playing now' : 'No score yet';
+    const inp = row.querySelector('.lb-in'); if (m.status === 'Final') inp.value = m.sa;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = m.status === 'Final' ? 'Change' : 'Save';
+    b.addEventListener('click', async () => {
+      const v = Math.floor(Number(inp.value)); if (!(v > 0)) return setMsg($('#gMsg'), 'Type a score above 0.', 'error');
+      if (m.status === 'Final' && v === m.sa) return;
+      busyBtn(b, true);
+      const r = await api({ action: 'adminMatchSave', id: m.id, fields: Object.assign(m.status === 'Final' ? { reset: true } : {}, { final: { sa: v } }) }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+      busyBtn(b, false); setMsg($('#gMsg'), r.ok ? `${shortT(m.a)}: ${v.toLocaleString()} saved.` : r.error, r.ok ? 'ok' : 'error'); if (r.ok) loadSports(true);
+    });
+    row.querySelector('.acc-btns').appendChild(b);
+    if (m.status === 'Final') { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn small reset'; x.textContent = 'Clear';
+      x.addEventListener('click', async () => { if (!confirmTwice('lbc:' + m.id, `Tap again: clear ${shortT(m.a)}'s score`, $('#gMsg'))) return;
+        busyBtn(x, true); const r = await api({ action: 'adminMatchSave', id: m.id, fields: { reset: true } }).catch(() => ({ ok: false, error: 'Failed.' }));
+        setMsg($('#gMsg'), r.ok ? `${shortT(m.a)}: score cleared.` : r.error, r.ok ? 'ok' : 'error'); loadSports(true); });
+      row.querySelector('.acc-btns').appendChild(x); }
+    L.appendChild(row);
+  });
+}
 // ---------- players per sport (from each house's registered members) ----------
 async function openPlayers() {
   const box = $('#spPlayers'), s = SP.sports.find(x => x.id === spPl);
   if (!s) { box.hidden = true; return; }
   box.hidden = false; $('#spPTitle').textContent = s.name + ': players';
-  $('#spPNote').textContent = s.scoreType === 'games' ? 'Optional for win/loss sports (no per-player scoring). Listing players still shows who played.' : 'Pick players from each house\'s registered members. Scorers record points and fouls for these players. Jersey number is optional.';
+  $('#spPNote').textContent = s.scoreType === 'games' ? 'Optional for win/loss sports (no per-player scoring). Listing players still shows who played.' : 'Pick players from each house\'s registered members. They show as the lineup on the scoreboard. Jersey number is optional.';
   const L = $('#spPList'); L.innerHTML = '<p class="adm-hint">Loading members…</p>'; setMsg($('#spPMsg'), '');
   let r; try { r = await api({ action: 'adminRoster', sport: s.id }); } catch (e) { L.innerHTML = '<p class="msg error">Could not load. Check your internet.</p>'; return; }
   if (!r.ok) { L.innerHTML = ''; return setMsg($('#spPMsg'), r.error, 'error'); }
@@ -1273,11 +1312,15 @@ function openEd(id) {
     : m.status === 'Live' ? `LIVE${m.bestOf > 1 ? ` · series ${m.wa}–${m.wb}` : ''} · ${m.sa}–${m.sb}` : (m.a && m.b ? 'Not played yet' : 'Waiting for teams');
   const acts = $('#mEdActs'); acts.innerHTML = '';
   const mk = (txt, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = txt; b.addEventListener('click', () => fn(b)); acts.appendChild(b); };
-  if (m.status !== 'Final' && m.a && m.b) ['a', 'b'].forEach(side => mk(`${shortT(m[side])} won`, 'ghostish', async b => {
-    if (!confirmTwice('edwin:' + m.id + side, `Tap again: ${shortT(m[side])} wins ${m.label} (moves on in the bracket)`, $('#mEdMsg'))) return;
-    busyBtn(b, true); const need = Math.floor(m.bestOf / 2) + 1;
-    const r = await api({ action: 'adminMatchSave', id: m.id, fields: { winner: side.toUpperCase(), wa: side === 'a' ? need : m.wa, wb: side === 'b' ? need : m.wb } }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
-    busyBtn(b, false); edDone(r, `${m.label}: ${shortT(m[side])} won.`); }));
+  const canFin = m.status !== 'Final' && m.a && m.b, T = s.scoreType;
+  $('#mEdFin').hidden = !canFin;
+  if (canFin) {
+    const need = Math.floor(m.bestOf / 2) + 1;
+    $('#mEdFinT').textContent = T === 'basketball' ? 'Final score (points)' : T === 'games' ? `Final score (games won · Bo${m.bestOf})` : `Final score (sets won · Bo${m.bestOf})`;
+    $('#mEdFaL').firstChild.textContent = shortT(m.a); $('#mEdFbL').firstChild.textContent = shortT(m.b);
+    $('#mEdFa').value = $('#mEdFb').value = ''; $('#mEdFa').max = $('#mEdFb').max = T === 'basketball' ? 300 : need;
+    $('#mEdSetsW').hidden = T === 'basketball' || T === 'games' || m.bestOf < 2; $('#mEdSets').value = '';
+  }
   if (m.status !== 'Scheduled' || m.wa || m.wb) mk('Reset game', 'reset', async b => {
     if (!confirmTwice('edrs:' + m.id, `Tap again: ${m.label} goes back to not played`, $('#mEdMsg'))) return;
     busyBtn(b, true); const r = await api({ action: 'adminMatchSave', id: m.id, fields: { reset: true } }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
@@ -1288,6 +1331,15 @@ function openEd(id) {
 function edClose() { const d = $('#mEd'); if (d.close) d.close(); else d.removeAttribute('open'); edM = null; }
 function edDone(r, ok) { if (!r.ok) return setMsg($('#mEdMsg'), r.error, 'error'); edClose(); setMsg($('#gMsg'), ok, 'ok'); loadSports(true); }
 $('#mEdClose').addEventListener('click', edClose);
+$('#mEdFinGo').addEventListener('click', async () => {
+  const m = edM; if (!m) return;
+  if ($('#mEdFa').value === '' || $('#mEdFb').value === '') return setMsg($('#mEdMsg'), 'Type both scores.', 'error');
+  const sa = Math.floor(+$('#mEdFa').value), sb = Math.floor(+$('#mEdFb').value), w = sa > sb ? m.a : m.b;
+  if (!confirmTwice('edfin:' + m.id + sa + '-' + sb, `Tap again: ${shortT(m.a)} ${sa}–${sb} ${shortT(m.b)} (${shortT(w)} moves on)`, $('#mEdMsg'))) return;
+  const b = $('#mEdFinGo'); busyBtn(b, true);
+  const r = await api({ action: 'adminMatchSave', id: m.id, fields: { final: { sa, sb, games: $('#mEdSetsW').hidden ? '' : $('#mEdSets').value.trim() } } }).catch(() => ({ ok: false, error: 'Failed. Check your internet.' }));
+  busyBtn(b, false); edDone(r, `${m.label}: ${shortT(m.a)} ${sa}–${sb} ${shortT(m.b)}.`);
+});
 $('#mEdSave').addEventListener('click', async () => {
   const m = edM; if (!m) return;
   const f = {};
@@ -1309,7 +1361,7 @@ $('#gGo').addEventListener('click', async () => {
   const b = $('#gGo'); busyBtn(b, true);
   try {
     const r = await api({ action: 'adminSportGenerate', id: s.id, opts: { seeding: $('#gSeed').value, date: $('#gDay').value, days: s.format === 'rrplayoffs' ? (sched.days || []).map(d => d.date) : undefined, time: $('#gTime').value, minutes: +$('#gMin').value } });
-    setMsg($('#gMsg'), r.ok ? `Bracket made: ${r.matches} games.` : r.error, r.ok ? 'ok' : 'error');
+    setMsg($('#gMsg'), r.ok ? (s.format === 'leaderboard' ? `Score list made: ${r.matches} houses.` : `Bracket made: ${r.matches} games.`) : r.error, r.ok ? 'ok' : 'error');
     if (r.ok) await loadSports(true);
   } catch (e) { if (e.message !== 'unauthorized') setMsg($('#gMsg'), 'Failed. Check your internet.', 'error'); }
   finally { busyBtn(b, false); }

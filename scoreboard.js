@@ -86,7 +86,7 @@ function renderOverview() {
   $('#ptsNote').textContent = !P ? '' : 'Points by final place only · ' + (same ? ['1st', '2nd', '3rd', '4th', '5th', '6th'].map((n, i) => `${n} ${P[i]}`).join(' · ')
     : data.sports.map(s => `${s.name} ${s.points.join('/')}`).join(' · '));
   const live = M.filter(m => m.status === 'Live');
-  const next = M.filter(m => m.status === 'Scheduled' && playable(m)).sort(sortTime).slice(0, 3);
+  const next = M.filter(m => m.status === 'Scheduled' && (playable(m) || (solo(m) && m.a))).sort(sortTime).slice(0, 3);
   $('#liveHead').textContent = live.length ? 'Live now' : 'Up next';
   $('#liveNote').hidden = !live.length;
   $('#liveList').innerHTML = (live.length ? live : next).map(m => matchCard(m, !!live.length)).join('') || '<p class="sb-empty">No games scheduled yet.</p>';
@@ -102,6 +102,7 @@ function renderOverview() {
   $('#bars').innerHTML = S.slice().sort((x, y) => y.won - x.won).map(r => `<div class="sb-bar" style="--c:${color(r.team)}"><span>${short(r.team)}</span><div class="tr"><div class="fi" style="width:${Math.max(2, r.won / mx * 100)}%"></div></div><span>${r.won}</span></div>`).join('');
   const recent = fin.slice().sort((x, y) => String(y.updated).localeCompare(String(x.updated))).slice(0, 6);
   $('#results').innerHTML = recent.map(m => { const l = m.winner === m.a ? m.b : m.a;
+    if (solo(m)) return `<div class="sb-res"><div><b>${esc(sportName(m.sport))}</b><br><span class="w">${short(m.a)}</span> scored</div><div style="text-align:right">${scoreLine(m)}<br><small>Final</small></div></div>`;
     return `<div class="sb-res${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><div><b>${esc(sportName(m.sport))} · ${esc(m.label)}</b><br><span class="w">${short(m.winner)}</span> beat ${short(l)}</div><div style="text-align:right">${scoreLine(m)}<br><small>Final</small></div></div>`; }).join('') || '<p class="sb-empty" style="padding:6px">No results yet.</p>';
   renderLeaders();
 }
@@ -133,18 +134,22 @@ document.addEventListener('click', e => { const t = e.target.closest('[data-m].t
 $('#bxClose').addEventListener('click', () => $('#boxDlg').close ? $('#boxDlg').close() : $('#boxDlg').removeAttribute('open'));
 $('#boxDlg').addEventListener('click', e => { if (e.target.id === 'boxDlg') $('#boxDlg').close(); });
 
+const solo = m => m.bracket === 'S';                 // leaderboard entry (Block Blast): one house, one score
 function scoreLine(m) {
+  if (solo(m)) return Number(m.sa).toLocaleString();
   if (m.bestOf > 1) return `${m.wa} – ${m.wb}`;
   const g = String(m.games).split(',').pop();
   return /^\d+-\d+$/.test(g) ? g.replace('-', ' – ') : (m.winner === m.a ? 'W – L' : 'L – W');
 }
 function matchCard(m, live) {
+  if (solo(m)) return `<div class="sb-match panel"><div class="sb-mh"><span>${esc(sportName(m.sport))}</span>${live ? '<span class="sb-tag"><i></i>LIVE</span>' : `<span>${fdate(m.date)} · ${f12(m.time)}</span>`}</div>
+  <div class="sb-mr solo"><div class="sb-side"><img src="${crest(m.a)}" alt="">${short(m.a)}</div><div class="sb-score"><i>${live ? 'playing now' : 'up next'}</i></div></div><div class="sb-mf">${esc(m.venue || '')}</div></div>`;
   const unit = /volley/i.test(sportName(m.sport)) ? 'Set' : 'Game';
-  const per = m.bestOf > 1 ? `${unit} ${m.wa + m.wb + 1} · series ${m.wa}–${m.wb}${m.period ? ' · ' + esc(m.period) : ''}` : esc(m.period || '');
-  const sa = live ? m.sa : '', sb = live ? m.sb : '';
+  const per = m.bestOf > 1 ? `Best of ${m.bestOf} · in progress` : 'In progress';
+  const sa = live ? m.sa : '', sb = live ? m.sb : '', run = live && (sa || sb);
   return `<div class="sb-match panel${hasBox(m) ? ' tap' : ''}" data-m="${esc(m.id)}"><div class="sb-mh"><span>${esc(sportName(m.sport))} · ${esc(m.label)}</span>${live ? '<span class="sb-tag"><i></i>LIVE</span>' : `<span>${fdate(m.date)} · ${f12(m.time)}</span>`}</div>
   <div class="sb-mr"><div class="sb-side"><img src="${crest(m.a)}" alt="">${short(m.a)}</div>
-  <div class="sb-score">${live ? `<span id="s-${m.id}a" class="${sa > sb ? 'lead' : ''}">${sa}</span><i>vs</i><span id="s-${m.id}b" class="${sb > sa ? 'lead' : ''}">${sb}</span>` : '<i>vs</i>'}</div>
+  <div class="sb-score">${run ? `<span id="s-${m.id}a" class="${sa > sb ? 'lead' : ''}">${sa}</span><i>vs</i><span id="s-${m.id}b" class="${sb > sa ? 'lead' : ''}">${sb}</span>` : '<i>vs</i>'}</div>
   <div class="sb-side r"><img src="${crest(m.b)}" alt="">${short(m.b)}</div></div>
   <div class="sb-mf">${live ? per : esc(m.venue || '')}${hasBox(m) ? ' · <u>Player stats</u>' : ''}</div>${live ? watchBtn(m) : ''}</div>`;
 }
@@ -163,11 +168,13 @@ function renderBrackets() {
   const s = data.sports.find(x => x.id === brSport), ms = data.matches.filter(m => m.sport === s.id);
   $('#brTitle').textContent = s.name.toUpperCase();
   const rr = s.format === 'rrplayoffs';
-  $('#brSub').textContent = rr ? `Round robin + playoffs · Group & play-ins Bo${s.bestOf} · Playoffs Bo${s.playoffBestOf || s.bestOf} · Grand Final Bo${s.finalBestOf} · ${s.venue || ''}` : `${rr ? 'Round robin + playoffs' : (s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single') + ' elimination'} · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
-  $('#brLegend').textContent = s.format === 'playin' ? 'Play-ins: random pairs. Winners go to the upper bracket. Play-in losers play Last Chance for the 4th upper spot; the rest start in the lower bracket. ↓ = dropped down after a loss.'
+  $('#brSub').textContent = s.format === 'leaderboard' ? `Leaderboard · highest score wins · ${s.venue || ''}` : rr ? `Round robin + playoffs · Group & play-ins Bo${s.bestOf} · Playoffs Bo${s.playoffBestOf || s.bestOf} · Grand Final Bo${s.finalBestOf} · ${s.venue || ''}` : `${rr ? 'Round robin + playoffs' : (s.format === 'playin' ? 'Play-ins + double' : s.format === 'double' ? 'Double' : 'Single') + ' elimination'} · Best of ${s.bestOf}${s.finalBestOf !== s.bestOf ? ' · Final best of ' + s.finalBestOf : ''} · ${s.venue || ''}`;
+  $('#brLegend').textContent = s.format === 'leaderboard' ? 'Each house plays for its highest score. Highest score is 1st. A tie goes to the house that posted its score first.' : s.format === 'playin' ? 'Play-ins: random pairs. Winners go to the upper bracket. Play-in losers play Last Chance for the 4th upper spot; the rest start in the lower bracket. ↓ = dropped down after a loss.'
     : rr ? 'Stage 1: every house plays every house once (a win = 1 point). #1–#2 go straight to the Upper Bracket Semifinals; #3–#6 play the play-ins (#4 v #5, #3 v #6, losers out). One more loss in the lower bracket and you’re out. Ties: head-to-head, then a decider. ↓ = dropped down after a loss.'
     : s.format === 'double' ? 'UB = upper bracket (no losses yet) · LB = lower bracket (one more loss and you’re out) · ↓ = dropped down from the upper bracket' : (ms.some(m => m.bracket === 'P') ? 'Semifinal losers play for 3rd place.' : '');
-  $('#brGroup').hidden = !rr;
+  $('#brGroup').hidden = !rr && s.format !== 'leaderboard';
+  if (s.format === 'leaderboard') return drawBoard(s, ms);
+  $('#brView').hidden = false; document.querySelector('#br .br-zoom').hidden = false;
   if (rr) { const all = ms.length ? ms : rrBlank(s); drawGroup(s, all.filter(m => m.bracket === 'R')); drawBracket(s, all.filter(m => m.bracket !== 'R')); return; }
   if (!ms.length) { $('#brCanvas').innerHTML = '<p class="sb-empty">The bracket for this sport is not out yet.</p>'; $('#brSize').style.width = ''; $('#brSize').style.height = '80px'; $('#brCanvas').style.transform = ''; return; }
   drawBracket(s, ms);
@@ -198,6 +205,19 @@ function drawGroup(s, R) {
   $('#brGroup').innerHTML = `<div class="rr-h">STAGE 1 · ROUND ROBIN <small>${blank ? 'Matchups are drawn soon' : `${g.played} of ${g.games} games played`}</small></div>
     <div class="rr-b">${tbl}<div class="rr-rs">${rounds}</div></div><div class="rr-h">STAGE 2 · PLAYOFFS <small>${g.done ? 'Seeded from the group table' : 'Filled in from the group table'}</small></div>`;
   $('#brGroup').querySelectorAll('.tap').forEach(el => el.addEventListener('click', () => openBox(el.dataset.m)));
+}
+// leaderboard sport (Block Blast): ranked by score; points once every house has a score
+function drawBoard(s, ms) {
+  $('#brView').hidden = true;
+  document.querySelector('#br .br-zoom').hidden = true;
+  const rows = (ms.length ? ms : s.teams.map((t, i) => ({ id: 'x' + i, a: t, status: 'Scheduled', sa: 0, order: i + 1 })));
+  const fin = rows.filter(m => m.status === 'Final'), all = fin.length && fin.length === rows.length;
+  const rk = {}; fin.slice().sort((a, b) => b.sa - a.sa || String(a.updated).localeCompare(String(b.updated))).forEach((m, i) => rk[m.id] = i + 1);
+  const list = rows.slice().sort((a, b) => (rk[a.id] || 99) - (rk[b.id] || 99) || houseName(a.a).localeCompare(houseName(b.a)));
+  $('#brGroup').innerHTML = `<div class="rr-h">LEADERBOARD <small>${fin.length ? `${fin.length} of ${rows.length} scores in${all ? ' · final' : ''}` : 'Scores show here once the houses play'}</small></div>
+    <div class="rr-b"><table class="rr-t lb-t"><thead><tr><th>#</th><th>House</th><th>Score</th><th>Pts</th></tr></thead><tbody>${list.map(m =>
+    `<tr class="${rk[m.id] === 1 ? 'top' : ''}${m.status === 'Live' ? ' live' : ''}" style="--c:${color(m.a)}"><td>${rk[m.id] || '–'}</td><td><img src="${crest(m.a)}" alt=""><b>${esc(houseName(m.a))}</b></td>
+    <td><b>${m.status === 'Final' ? Number(m.sa).toLocaleString() : m.status === 'Live' ? '● LIVE' : '—'}</b></td><td>${all ? (s.points || [])[rk[m.id] - 1] || 0 : ''}</td></tr>`).join('')}</tbody></table></div>`;
 }
 function drawBracket(s, ms) {
   const r = bracketHTML(ms, { esc, crest, color, name: houseName, fdate, f12, tap: hasBox });
@@ -236,12 +256,12 @@ function renderSchedule() {
   const days = {};
   ms.forEach(m => { (days[m.date || ''] = days[m.date || ''] || []).push(m); });
   const order = Object.keys(days).sort((a, b) => (a || 'z').localeCompare(b || 'z')); if (ended) order.reverse();
-  const note = all.some(is.live) && (scWhen === 'all' || scWhen === 'live') ? '<p class="sb-delay">Live scores may be a few seconds behind the actual game.</p>' : '';
+  const note = all.some(is.live) && (scWhen === 'all' || scWhen === 'live') ? '<p class="sb-delay">Final scores show here as soon as the officers send them.</p>' : '';
   $('#sched').innerHTML = note + order.map(d => `<div class="sc-day"><h4>${esc(fdate(d))}</h4>${days[d].map(m => {
-    const st = m.status === 'Final' ? `<span class="sc-st f">Final · ${scoreLine(m)}</span>` : m.status === 'Live' ? `<span class="sc-st l">● Live · ${m.bestOf > 1 ? m.wa + '–' + m.wb : m.sa + '–' + m.sb}</span>` : `<span class="sc-st">Upcoming</span>`;
+    const st = m.status === 'Final' ? `<span class="sc-st f">Final · ${scoreLine(m)}</span>` : m.status === 'Live' ? `<span class="sc-st l">● Live${m.bestOf > 1 && (m.wa || m.wb) ? ' · ' + m.wa + '–' + m.wb : ''}</span>` : `<span class="sc-st">Upcoming</span>`;
     const tm = t => t ? `<b class="${m.status === 'Final' ? (m.winner === t ? 'w' : 'l') : ''}">${short(t)}</b>` : '<b>TBD</b>';
     const btn = watchBtn(m);
-    return `<div class="sc-row${hasBox(m) ? ' tap' : ''}${m.status === 'Live' ? ' live' : ''}" data-m="${esc(m.id)}"><span>${f12(m.time) || '—'}</span><span class="tms">${tm(m.a)} vs ${tm(m.b)}<small>${esc(sportName(m.sport))} · ${esc(m.label)}${m.venue ? ' · ' + esc(m.venue) : ''}</small></span><span class="sc-r">${st}${btn}</span></div>`; }).join('')}</div>`).join('')
+    return `<div class="sc-row${hasBox(m) ? ' tap' : ''}${m.status === 'Live' ? ' live' : ''}" data-m="${esc(m.id)}"><span>${f12(m.time) || '—'}</span><span class="tms">${solo(m) ? tm(m.a) : `${tm(m.a)} vs ${tm(m.b)}`}<small>${esc(sportName(m.sport))} · ${esc(m.label)}${m.venue ? ' · ' + esc(m.venue) : ''}</small></span><span class="sc-r">${st}${btn}</span></div>`; }).join('')}</div>`).join('')
     || `<p class="sb-empty">${{ live: 'No game is live right now.', up: 'No upcoming games.', end: 'No finished games yet.' }[scWhen] || 'No games yet.'}</p>`;
 }
 

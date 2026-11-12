@@ -1059,3 +1059,6 @@ body.in-flow .event-crest { width: 64px; margin: 2px auto; }
 .m-ed select:disabled{opacity:.6}
 .m-ed-st{margin:6px 0;font:700 14px Cinzel,serif;color:#5a3d1c}
 .m-ed-acts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.m-ed-fin{margin:10px 0;padding:10px;border:1.5px solid rgba(90,60,30,.35);border-radius:10px;background:rgba(255,250,235,.4)}
+.m-ed-fin .btn{width:auto}
+.lb-row .lb-in{width:120px}

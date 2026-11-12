@@ -292,3 +292,19 @@ body.demo::after{content:'SAMPLE DATA';position:fixed;top:14px;right:-38px;z-ind
 .sb-wb:hover{filter:brightness(1.12)}
 .sb-match .sb-wb{margin:8px auto 0;display:flex;width:max-content;font-size:13px;padding:7px 16px}
 .sb-pane p.sb-delay{margin:-4px auto 10px;text-align:center;font:italic 14px 'IM Fell English',serif;color:#cbb88f}
+/* scorer: final score form */
+.sk-board.one{grid-template-columns:1fr;max-width:320px;margin:0 auto}
+.sk-in{display:block;margin-top:8px;font:700 12px Cinzel,serif;letter-spacing:.06em}
+.sk-in span{display:block;margin-bottom:4px;opacity:.9}
+.sk-in input{width:100%;box-sizing:border-box;text-align:center;font:700 40px/1.1 'Cinzel Decorative',serif;padding:6px 4px;border-radius:10px;border:2px solid rgba(255,255,255,.75);background:rgba(255,255,255,.92);color:#2b1d10}
+.sk-start{text-align:center;margin:8px 0 14px}
+.sk-start p{margin:0 0 8px;font:italic 15px 'IM Fell English',serif;color:#5a4630}
+.sk-start .btn{width:auto}
+.sk-sets{display:block;margin-top:12px}
+.sk-confirm{text-align:center}
+.sk-confirm h3{font:700 18px Cinzel,serif;margin:4px 0 8px}
+.sk-confirm .sk-win b{display:block;font:700 22px 'Cinzel Decorative',serif}
+.sk-confirm .sk-win small{display:block;font:italic 14px 'IM Fell English',serif}
+.sb-mr.solo{grid-template-columns:1fr auto}
+.lb-t td:nth-child(3){font:700 17px Cinzel,serif}
+.rr-t tr.live td:nth-child(3){color:#ff8a7a}
